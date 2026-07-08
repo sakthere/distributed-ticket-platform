@@ -4,7 +4,7 @@ using System.Text;
 
 namespace TicketManagement.Persistence.Configurations
 {
-    internal class RefreshTokenConfiguration
+    public class RefreshTokenConfiguration
     {
     }
 }

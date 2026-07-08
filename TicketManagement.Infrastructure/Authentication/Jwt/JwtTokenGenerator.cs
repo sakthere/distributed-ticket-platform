@@ -9,7 +9,7 @@ using TicketManagement.Application.Interfaces;
 
 namespace TicketManagement.Infrastructure.Authentication
 {
-    internal class JwtTokenGenerator:IJwtTokenGenerator
+    public class JwtTokenGenerator:IJwtTokenGenerator
     {
         public readonly JwtSettings _settings;
         public JwtTokenGenerator(IOptions<JwtSettings> settings)

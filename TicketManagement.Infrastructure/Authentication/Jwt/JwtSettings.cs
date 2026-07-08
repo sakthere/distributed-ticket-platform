@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace TicketManagement.Infrastructure.Authentication
+namespace TicketManagement.Infrastructure.Authentication.Jwt
 {
     public class JwtSettings
     {
