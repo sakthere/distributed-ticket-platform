@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using TicketManagement.Application.Interfaces;
 
-namespace TicketManagement.Infrastructure.Authentication
+namespace TicketManagement.Infrastructure.Authentication.Hashing
 {
     public class PasswordHasher : IPasswordHasher
     {

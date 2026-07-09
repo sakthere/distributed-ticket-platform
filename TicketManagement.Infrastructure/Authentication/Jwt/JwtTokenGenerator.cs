@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using TicketManagement.Application.Interfaces;
 
-namespace TicketManagement.Infrastructure.Authentication
+namespace TicketManagement.Infrastructure.Authentication.Jwt
 {
     public class JwtTokenGenerator:IJwtTokenGenerator
     {

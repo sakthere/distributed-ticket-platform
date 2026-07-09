@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 
 namespace TicketManagement.Application.Features.Authentication.Login
 {
-    internal class LoginResult
+    public class LoginResult
     {
+        public string AccessToken { get; set; } = string.Empty;
+        public DateTime ExpiresAt { get; set; }
     }
 }

@@ -1,12 +1,41 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using TicketManagement.Application.Common;
+using TicketManagement.Application.Interfaces;
+using TicketManagement.Domain.Entities;
 
 namespace TicketManagement.Application.Features.Authentication.Login
 {
-    internal class LoginCommandHandler
+    public class LoginCommandHandler
     {
+        private readonly IPasswordHasher _passwordHasher;
+        private readonly IJwtTokenGenerator _jwtTokenGenerator;
+        private readonly IUserRepository _userRepository;
+
+        public LoginCommandHandler(IJwtTokenGenerator jwtTokenGenerator, IUserRepository userRepository, IPasswordHasher passwordHasher)
+        {
+            _jwtTokenGenerator = jwtTokenGenerator;
+            _userRepository = userRepository;
+            _passwordHasher = passwordHasher;
+        }
+
+        public async Task<Result<LoginResult>> HandleAsync(LoginCommand command)
+        {
+            var user = await _userRepository.GetByEmailAsync(command.Email);
+            if(user == null)
+            {
+                return Result<LoginResult>.Failure("Incorrect Email or Password");
+            }
+            var isPasswordValid = _passwordHasher.Verify(command.Password, user.PasswordHash);
+            if (!isPasswordValid)
+            {
+                return Result<LoginResult>.Failure("Incorrect Email or Password");
+            }
+            var token = _jwtTokenGenerator.GenerateToken(user.Id, user.Email, user.Role.ToString());
+
+            return Result<LoginResult>.Success(new LoginResult
+            {
+                AccessToken = token,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(60)
+            });
+        }
     }
 }
