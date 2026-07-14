@@ -22,12 +22,12 @@ namespace TicketManagement.Application.Features.Authentication.Login
             var user = await _userRepository.GetByEmailAsync(command.Email);
             if(user == null)
             {
-                return Result<LoginResult>.Failure("Incorrect Email or Password");
+                return Result<LoginResult>.Failure(AuthErrors.InvalidCredentails);
             }
             var isPasswordValid = _passwordHasher.Verify(command.Password, user.PasswordHash);
             if (!isPasswordValid)
             {
-                return Result<LoginResult>.Failure("Incorrect Email or Password");
+                return Result<LoginResult>.Failure(AuthErrors.InvalidCredentails);
             }
             var token = _jwtTokenGenerator.GenerateToken(user.Id, user.Email, user.Role.ToString());
 

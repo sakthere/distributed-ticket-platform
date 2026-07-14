@@ -1,25 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace TicketManagement.Application.Common
 {
-    public class Result<T>
+    public class Result
     {
-        public bool IsSuccess { get; }
-        public T? Value { get; }
-        public string? Error { get; }
-
-        public Result(bool isSuccess, T? value, string? error)
+        protected Result(bool isSuccess, Error error)
         {
             IsSuccess = isSuccess;
-            Value = value;
             Error = error;
         }
-
-        public static Result<T> Success(T value) => new(true, value, null);
-        public static Result<T> Failure(string error) => new(false, default, error);
+        public bool IsSuccess { get; }
+        public bool IsFailure => !IsSuccess;
+        public Error Error { get; }
+        public static Result Success() => new(true, Error.None);
+        public static Result Failure(Error error) => new(false, error);
     }
 }

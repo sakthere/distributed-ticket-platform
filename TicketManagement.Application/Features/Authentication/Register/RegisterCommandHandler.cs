@@ -23,7 +23,7 @@ namespace TicketManagement.Application.Features.Authentication.Register
             
             if(existingUser != null)
             {
-                return Result<RegisterResult>.Failure("This Email Already Exists");
+                return Result<RegisterResult>.Failure(AuthErrors.EmailAlreadyExists);
             }
 
             var user = new User

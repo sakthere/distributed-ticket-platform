@@ -663,3 +663,273 @@ Strategy vs State.
 - Microservices
 - Kubernetes
 - Azure
+
+
+---
+
+# 14. Middleware
+
+## 🧠 Must Memorize
+
+### Middleware
+
+Middleware is a component that participates in the ASP.NET Core HTTP request pipeline.
+
+Every incoming request passes through the middleware pipeline before reaching the controller.
+
+Every outgoing response travels back through the same middleware pipeline.
+
+---
+
+### Request Pipeline
+
+```text
+Request
+    │
+    ▼
+Exception Middleware
+    │
+    ▼
+Authentication
+    │
+    ▼
+Authorization
+    │
+    ▼
+Controller
+    │
+    ▼
+Handler
+    │
+    ▼
+Repository
+    │
+    ▼
+SQL Server
+    │
+    ▲
+Repository
+    ▲
+Handler
+    ▲
+Controller
+    ▲
+Authorization
+    ▲
+Authentication
+    ▲
+Exception Middleware
+    ▲
+Response
+```
+
+---
+
+### Middleware Execution
+
+Middleware executes code:
+
+- Before calling the next middleware
+- After the next middleware finishes
+
+```csharp
+await _next(context);
+
+// Execution returns here
+```
+
+---
+
+### Important Order
+
+```csharp
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+app.UseHttpsRedirection();
+
+app.UseAuthentication();
+
+app.UseAuthorization();
+
+app.MapControllers();
+```
+
+Authentication **must** execute before Authorization.
+
+Exception Handling should be the first middleware so it can catch failures from everything downstream.
+
+---
+
+## 🟡 Must Understand
+
+### Why Middleware Exists
+
+Middleware provides a way to implement cross-cutting concerns once for the entire application.
+
+Examples include:
+
+- Exception Handling
+- Authentication
+- Authorization
+- Logging
+- Rate Limiting
+- CORS
+- Compression
+- Caching
+
+Instead of duplicating logic inside every controller.
+
+---
+
+### Why RequestDelegate?
+
+`RequestDelegate` represents the **next component** in the HTTP request pipeline.
+
+Calling
+
+```csharp
+await _next(context);
+```
+
+passes execution to the next middleware.
+
+When that middleware finishes, execution returns to the current middleware.
+
+---
+
+### Why Middleware isn't registered with AddScoped()
+
+Application services are resolved because another class requests them through Dependency Injection.
+
+Middleware is different.
+
+Middleware becomes part of the HTTP request pipeline using:
+
+```csharp
+app.UseMiddleware<T>();
+```
+
+ASP.NET Core constructs the middleware and resolves its constructor dependencies automatically.
+
+---
+
+### Why Global Exception Middleware?
+
+Instead of writing:
+
+```csharp
+try
+{
+}
+catch
+{
+}
+```
+
+inside every controller,
+
+we centralize exception handling.
+
+Benefits:
+
+- Consistent responses
+- Consistent logging
+- Better security
+- Easier maintenance
+
+---
+
+### Why ProblemDetails?
+
+ProblemDetails follows RFC 7807, the standard error response format for HTTP APIs.
+
+Benefits:
+
+- Consistent structure
+- Standardized clients
+- Easier debugging
+- Supported by ASP.NET Core
+
+---
+
+### Why not return Exception.Message?
+
+Exception messages often expose:
+
+- SQL queries
+- Stack traces
+- Internal class names
+- Server details
+
+Clients should receive a generic response.
+
+Developers should inspect the logs.
+
+**Logs are for developers.**
+
+**Responses are for clients.**
+
+---
+
+## 📚 Lookup
+
+- Middleware registration syntax
+- UseMiddleware<T>()
+- WriteAsJsonAsync()
+- ProblemDetails
+- RequestDelegate
+- HttpContext APIs
+
+---
+
+## 🏗 Production Notes
+
+- Keep middleware focused on one responsibility.
+- Middleware should remain small (generally under 100 lines).
+- Use structured logging instead of string concatenation.
+- Include TraceId or CorrelationId in every error response.
+- Never leak internal exception details.
+- Return RFC7807 ProblemDetails for API errors.
+
+Future improvements:
+
+- Exception-to-HTTP status mapping
+- Correlation IDs
+- Request Logging Middleware
+- Serilog integration
+
+---
+
+## 🎯 Interview Questions
+
+### Basic
+
+- What is middleware?
+- How does middleware differ from filters?
+- What is RequestDelegate?
+
+### Intermediate
+
+- Why does middleware execute both before and after the next middleware?
+- Why should Exception Middleware be registered first?
+- Why must Authentication execute before Authorization?
+- Why doesn't middleware use AddScoped()?
+
+### Advanced
+
+- Explain the ASP.NET Core request pipeline.
+- How would you build custom middleware?
+- How would you standardize error responses across a distributed system?
+- How would you add correlation IDs to every request?
+
+---
+
+## 🔗 Related Concepts
+
+- Authentication
+- Authorization
+- Dependency Injection
+- HTTP Request Pipeline
+- Chain of Responsibility Pattern
+- ProblemDetails (RFC7807)
+- Structured Logging
