@@ -1,20 +1,14 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using TicketManagement.Api.Mappings;
 using TicketManagement.Application.Common;
 
 namespace TicketManagement.Api.Extensions
 {
     public static class Extensions
     {
-        public static ActionResult ToActionResult<T>(this Result<T> result)
+        public static IActionResult ToActionResult(this Error error)
         {
-            if (result.IsSuccess)
-            {
-                return new OkObjectResult(result.Value);
-            }
-            else
-            {
-                return new BadRequestObjectResult(result.Error);
-            }
+            return ErrorMapping.ToActionResult(error);
         }
     }
 }

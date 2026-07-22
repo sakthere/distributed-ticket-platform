@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using TicketManagement.Api.Extensions;
 using TicketManagement.Application.Features.Authentication.Login;
 using TicketManagement.Application.Features.Authentication.Register;
 
@@ -21,11 +22,10 @@ namespace TicketManagement.Api.Controller
         public async Task<IActionResult> Register(RegisterCommand command)
         {
             var result = await _registerCommandHandler.HandleAsync(command);
-            if (!result.IsSuccess)
+            if (result.IsFailure)
             {
-                return BadRequest(result.Error);
+                return result.Error.ToActionResult();
             }
-
             return Created($"api/auth/{result.Value!.UserId}", result.Value);
         }
 
@@ -33,11 +33,7 @@ namespace TicketManagement.Api.Controller
         public async Task<IActionResult> Login(LoginCommand command)
         {
             var result = await _loginCommandHandler.HandleAsync(command);
-            if (!result.IsSuccess)
-            {
-                return Unauthorized(result.Error);
-            }
-
+            if (result.IsFailure) return result.Error.ToActionResult();
             return Ok(result.Value);
         }
     }

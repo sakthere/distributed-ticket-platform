@@ -7,7 +7,7 @@ using TicketManagement.Application.Common;
 
 namespace TicketManagement.Application.Features.Authentication
 {
-    internal static class AuthErrors
+    public static class AuthErrors
     {
         public static readonly Error InvalidCredentails = new("AUTH001", "Invalid email or password.");
         public static readonly Error EmailAlreadyExists = new ("AUTH002", "An account with this email already exists.");
