@@ -1,14 +1,13 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TicketManagement.Application.Features.Authentication.Register
+namespace TicketManagement.Application.Features.Authentication.RefreshToken
 {
-    public class RegisterResult
+    public class RefreshResult
     {
-        public int UserId { get; set; }
         public string AccessToken { get; set; } = string.Empty;
         public DateTime AccessTokenExpiresAt { get; set; }
         public string RefreshToken { get; set; } = string.Empty;

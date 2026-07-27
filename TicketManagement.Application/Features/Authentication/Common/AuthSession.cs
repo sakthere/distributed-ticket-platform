@@ -1,17 +1,16 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TicketManagement.Application.Features.Authentication.Register
+namespace TicketManagement.Application.Features.Authentication.Common
 {
-    public class RegisterResult
+    public class AuthSession
     {
-        public int UserId { get; set; }
         public string AccessToken { get; set; } = string.Empty;
         public DateTime AccessTokenExpiresAt { get; set; }
         public string RefreshToken { get; set; } = string.Empty;
-        public DateTime RefreshTokenExpiresAt { get; set; }
+        public DateTime RefreshTokenExpiresAt {get; set;}
     }
 }

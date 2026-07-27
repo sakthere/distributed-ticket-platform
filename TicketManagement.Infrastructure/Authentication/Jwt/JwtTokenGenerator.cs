@@ -17,7 +17,7 @@ namespace TicketManagement.Infrastructure.Authentication.Jwt
             _settings = settings.Value;
         }
 
-        public string GenerateToken(int userId, string email, string role)
+        public (string Token, DateTime ExpiresAt) GenerateToken(int userId, string email, string role)
         {
             var claim = new[]
             {
@@ -28,13 +28,17 @@ namespace TicketManagement.Infrastructure.Authentication.Jwt
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.SecretKey));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var expiresAt = DateTime.UtcNow.AddMinutes(_settings.ExpiryMinutes);
             var token = new JwtSecurityToken(
                 issuer: _settings.Issuer,
                 audience: _settings.Audience,
                 claims: claim,
-                expires: DateTime.Now.AddMinutes(_settings.ExpiryMinutes),
+                expires: expiresAt,
                 signingCredentials: credentials);
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+            return (tokenString, expiresAt);
         }
+
+        
     }
 }

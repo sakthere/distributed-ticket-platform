@@ -2,7 +2,6 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using TicketManagement.Application.Features.Authentication.Login;
 using TicketManagement.Application.Features.Authentication.Register;
 using TicketManagement.Application.Interfaces;
@@ -15,6 +14,10 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
 using TicketManagement.Api.Middleware;
+using TicketManagement.Infrastructure.Authentication.RefreshTokens;
+using TicketManagement.Application.Features.Authentication.Common;
+using TicketManagement.Application.Features.Authentication.RefreshToken;
+using TicketManagement.Application.Features.Authentication.Logout;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,6 +53,7 @@ builder.Services.AddSwaggerGen(options =>
         }});
 });
 builder.Services.AddControllers();
+builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterCommandValidator>();
 
@@ -85,6 +89,14 @@ builder.Services.AddScoped<RegisterCommandHandler>();
 builder.Services.AddScoped<LoginCommandHandler>();
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
+builder.Services.Configure<RefreshTokenSettings>(builder.Configuration.GetSection("RefreshTokenSettings"));
+
+builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+builder.Services.AddScoped<IRefreshTokenHasher, RefreshTokenHasher>();
+builder.Services.AddScoped<IRefreshTokenGenerator, RefreshTokenGenerator>();
+builder.Services.AddScoped<IAuthSessionIssuer, AuthSessionIssuer>();
+builder.Services.AddScoped<RefreshCommandHandler>();
+builder.Services.AddScoped<LogoutCommandHandler>();
 
 var app = builder.Build();
 

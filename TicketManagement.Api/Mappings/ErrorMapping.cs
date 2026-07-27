@@ -14,6 +14,9 @@ namespace TicketManagement.Api.Mappings
                 var e when e == AuthErrors.InvalidCredentails => StatusCodes.Status401Unauthorized,
                 var e when e == AuthErrors.EmailAlreadyExists => StatusCodes.Status409Conflict,
                 var e when e == AuthErrors.UserNotFound => StatusCodes.Status404NotFound,
+                var e when e == AuthErrors.RefreshTokenExpired => StatusCodes.Status401Unauthorized,
+                var e when e == AuthErrors.InvalidRefreshToken => StatusCodes.Status401Unauthorized,
+                var e when e == AuthErrors.RefreshTokenReused => StatusCodes.Status401Unauthorized,
                 _ => StatusCodes.Status400BadRequest
             };
 
@@ -29,22 +32,5 @@ namespace TicketManagement.Api.Mappings
                 StatusCode = statusCode
             };
         } 
-        public static int GetStatusCode(Error error)
-        {
-            if(error == AuthErrors.InvalidCredentails)
-            {
-                return StatusCodes.Status401Unauthorized;
-            }
-            if(error == AuthErrors.EmailAlreadyExists)
-            {
-                return StatusCodes.Status409Conflict;
-            }
-            if(error == AuthErrors.UserNotFound)
-            {
-                return StatusCodes.Status404NotFound;
-            }
-            return StatusCodes.Status400BadRequest;
-
-        }
     }
 }

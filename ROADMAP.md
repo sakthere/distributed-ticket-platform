@@ -10,6 +10,13 @@
 
 ---
 
+## Phase 1.5 - Testing Foundation
+
+- [ ] Unit tests (Application layer handlers — Register, Login, Refresh, Logout)
+- [ ] Integration tests (API layer, real DB or Testcontainers)
+
+---
+
 ## Phase 2 - Ticket Management
 
 - [ ] Create Ticket
