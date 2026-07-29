@@ -12,8 +12,8 @@
 
 ## Phase 1.5 - Testing Foundation
 
-- [ ] Unit tests (Application layer handlers — Register, Login, Refresh, Logout)
-- [ ] Integration tests (API layer, real DB or Testcontainers)
+- [x] Unit tests (Application layer handlers — Register, Login, Refresh, Logout)
+- [ ] Integration tests (API layer, real DB or Testcontainers) — deliberately deferred, see tech debt in Sprint2 recap
 
 ---
 
