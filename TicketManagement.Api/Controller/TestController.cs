@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using TicketManagement.Domain.Enums;
 
 namespace TicketManagement.Api.Controller
 {
@@ -13,6 +14,13 @@ namespace TicketManagement.Api.Controller
         public IActionResult Get()
         {
             return Ok("Auth Done");
+        }
+
+        [HttpGet("admin-only")]
+        [Authorize(Roles = nameof(UserRole.Admin))]
+        public IActionResult AdminOnly()
+        {
+            return Ok("Admin access confirmed");
         }
     }
 }
