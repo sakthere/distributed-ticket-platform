@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
 using TicketManagement.Api.Mappings;
 using TicketManagement.Application.Common;
 
@@ -9,6 +10,11 @@ namespace TicketManagement.Api.Extensions
         public static IActionResult ToActionResult(this Error error)
         {
             return ErrorMapping.ToActionResult(error);
+        }
+        public static int GetUserId(this ClaimsPrincipal user)
+        {
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return int.Parse(userIdClaim!);
         }
     }
 }

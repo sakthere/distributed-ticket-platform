@@ -18,6 +18,7 @@ using TicketManagement.Infrastructure.Authentication.RefreshTokens;
 using TicketManagement.Application.Features.Authentication.Common;
 using TicketManagement.Application.Features.Authentication.RefreshToken;
 using TicketManagement.Application.Features.Authentication.Logout;
+using TicketManagement.Application.Features.Tickets.Create;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -95,6 +96,8 @@ builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 builder.Services.AddScoped<IRefreshTokenHasher, RefreshTokenHasher>();
 builder.Services.AddScoped<IRefreshTokenGenerator, RefreshTokenGenerator>();
 builder.Services.AddScoped<IAuthSessionIssuer, AuthSessionIssuer>();
+builder.Services.AddScoped<ITicketRepository, TicketRepository>();
+builder.Services.AddScoped<CreateTicketCommandHandler>();
 builder.Services.AddScoped<RefreshCommandHandler>();
 builder.Services.AddScoped<LogoutCommandHandler>();
 

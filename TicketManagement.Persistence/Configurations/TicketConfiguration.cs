@@ -23,7 +23,7 @@ namespace TicketManagement.Persistence.Configurations
             builder.HasOne(x => x.CreatedByUser).WithMany(x => x.CreatedTickets).
                 HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne(x => x.AssignedByUser).WithMany(x => x.AssignedTickets).
+            builder.HasOne(x => x.AssignedToUser).WithMany(x => x.AssignedTickets).
                 HasForeignKey(x => x.AssignedToUserId).OnDelete(DeleteBehavior.Restrict);
         }
     }
