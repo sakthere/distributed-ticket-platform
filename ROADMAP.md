@@ -24,8 +24,8 @@
 - [x] Delete Ticket
 - [x] Assign Ticket
 - [x] Get Ticket (not originally scoped in this roadmap, added when the ticket CRUD loop was closed out)
-- [ ] Ticket Status
-- [ ] Ticket Priority
+- [x] Ticket Status (explicit state-machine transitions - see TicketStatusPolicy)
+- [ ] Ticket Priority (override by Admin/Agent after creation - still open, see Sprint 5 Future Improvements)
 - [ ] List/Search Tickets (pagination, filtering, sorting — needed once Get's single-read model isn't enough)
 
 ---
