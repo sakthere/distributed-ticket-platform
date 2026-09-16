@@ -19,12 +19,14 @@
 
 ## Phase 2 - Ticket Management
 
-- [ ] Create Ticket
-- [ ] Update Ticket
-- [ ] Delete Ticket
-- [ ] Assign Ticket
+- [x] Create Ticket
+- [x] Update Ticket
+- [x] Delete Ticket
+- [x] Assign Ticket
+- [x] Get Ticket (not originally scoped in this roadmap, added when the ticket CRUD loop was closed out)
 - [ ] Ticket Status
 - [ ] Ticket Priority
+- [ ] List/Search Tickets (pagination, filtering, sorting — needed once Get's single-read model isn't enough)
 
 ---
 

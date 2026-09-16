@@ -1,11 +1,12 @@
-﻿using TicketManagement.Domain.Entities;
+﻿using System.Threading;
+using TicketManagement.Domain.Entities;
 
 namespace TicketManagement.Application.Interfaces
 {
     public interface ITicketRepository
     {
         Task AddAsync(Ticket ticket);
-        Task<Ticket?> GetByIdAsync(int id);
+        Task<Ticket?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
         Task SaveChangesAsync();
     }
 }
