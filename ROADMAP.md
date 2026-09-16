@@ -21,9 +21,9 @@
 
 - [x] Create Ticket
 - [x] Update Ticket
-- [x] Delete Ticket (feature/delete-ticket, awaiting review/merge)
-- [x] Assign Ticket (feature/assign-ticket, awaiting review/merge)
-- [x] Get Ticket (feature/get-ticket, awaiting review/merge — not originally scoped in this roadmap, added when the ticket CRUD loop was closed out)
+- [x] Delete Ticket
+- [x] Assign Ticket
+- [x] Get Ticket (not originally scoped in this roadmap, added when the ticket CRUD loop was closed out)
 - [ ] Ticket Status
 - [ ] Ticket Priority
 - [ ] List/Search Tickets (pagination, filtering, sorting — needed once Get's single-read model isn't enough)
