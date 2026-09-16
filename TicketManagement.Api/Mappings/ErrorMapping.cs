@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using TicketManagement.Application.Common;
 using Microsoft.AspNetCore.Mvc;
+using TicketManagement.Application.Features.Tickets;
 
 namespace TicketManagement.Api.Mappings
 {
@@ -17,6 +18,9 @@ namespace TicketManagement.Api.Mappings
                 var e when e == AuthErrors.RefreshTokenExpired => StatusCodes.Status401Unauthorized,
                 var e when e == AuthErrors.InvalidRefreshToken => StatusCodes.Status401Unauthorized,
                 var e when e == AuthErrors.RefreshTokenReused => StatusCodes.Status401Unauthorized,
+                var e when e == TicketErrors.NotFound => StatusCodes.Status404NotFound,
+                var e when e == TicketErrors.NotTicketOwner => StatusCodes.Status403Forbidden,
+                var e when e == TicketErrors.TicketNotEditable => StatusCodes.Status409Conflict,
                 _ => StatusCodes.Status400BadRequest
             };
 
