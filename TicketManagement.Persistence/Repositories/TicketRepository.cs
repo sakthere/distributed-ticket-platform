@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using TicketManagement.Application.Interfaces;
@@ -23,9 +24,9 @@ namespace TicketManagement.Persistence.Repositories
             await _context.Tickets.AddAsync(ticket);
         }
 
-        public async Task<Ticket?> GetByIdAsync(int id)
+        public async Task<Ticket?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         {
-           return await _context.Tickets.FirstOrDefaultAsync(x => x.Id == id);
+           return await _context.Tickets.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         }
         public async Task SaveChangesAsync()
         {

@@ -1,8 +1,8 @@
-﻿using TicketManagement.Domain.Enums;
+using TicketManagement.Domain.Enums;
 
-namespace TicketManagement.Api.Contract.Tickets
+namespace TicketManagement.Application.Features.Tickets.Get
 {
-    public class TicketResponse
+    public class GetTicketByIdResult
     {
         public int Id { get; set; }
         public string Title { get; set; } = string.Empty;
@@ -11,6 +11,7 @@ namespace TicketManagement.Api.Contract.Tickets
         public TicketPriority Priority { get; set; }
         public TicketImpact Impact { get; set; }
         public TicketUrgency Urgency { get; set; }
+        public int CreatedByUserId { get; set; }
         public int? AssignedToUserId { get; set; }
         public DateTime CreatedAt { get; set; }
     }
