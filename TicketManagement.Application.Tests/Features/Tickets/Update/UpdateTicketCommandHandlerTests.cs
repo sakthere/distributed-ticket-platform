@@ -1,3 +1,4 @@
+using System.Threading;
 using Moq;
 using TicketManagement.Application.Features.Tickets;
 using TicketManagement.Application.Features.Tickets.Update;
@@ -30,7 +31,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Update
                 CreatedByUserId = 42
             };
 
-            _ticketRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(ticket);
+            _ticketRepository.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
 
             var command = new UpdateTicketCommand
             {
@@ -50,7 +51,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Update
         [Fact]
         public async Task HandleAsync_WhenTicketDoesNotExist_ReturnsNotFound()
         {
-            _ticketRepository.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((TicketEntity?)null);
+            _ticketRepository.Setup(r => r.GetByIdAsync(99, It.IsAny<CancellationToken>())).ReturnsAsync((TicketEntity?)null);
 
             var command = new UpdateTicketCommand { Id = 99, Title = "x", Description = "y", CurrentUserId = 1 };
 
@@ -65,7 +66,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Update
         public async Task HandleAsync_WhenCallerIsNotOwner_ReturnsNotTicketOwner()
         {
             var ticket = new TicketEntity { Id = 1, Status = TicketStatus.Open, CreatedByUserId = 42 };
-            _ticketRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(ticket);
+            _ticketRepository.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
 
             var command = new UpdateTicketCommand { Id = 1, Title = "x", Description = "y", CurrentUserId = 999 };
 
@@ -80,7 +81,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Update
         public async Task HandleAsync_WhenTicketIsNotOpen_ReturnsTicketNotEditable()
         {
             var ticket = new TicketEntity { Id = 1, Status = TicketStatus.InProgress, CreatedByUserId = 42 };
-            _ticketRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(ticket);
+            _ticketRepository.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
 
             var command = new UpdateTicketCommand { Id = 1, Title = "x", Description = "y", CurrentUserId = 42 };
 
