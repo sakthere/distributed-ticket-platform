@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Threading;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TicketManagement.Api.Contract.Tickets;
 using TicketManagement.Api.Extensions;
 using TicketManagement.Application.Features.Tickets.Assign;
 using TicketManagement.Application.Features.Tickets.Create;
 using TicketManagement.Application.Features.Tickets.Delete;
+using TicketManagement.Application.Features.Tickets.Get;
 using TicketManagement.Application.Features.Tickets.Update;
 using TicketManagement.Domain.Enums;
 
@@ -19,16 +21,19 @@ namespace TicketManagement.Api.Controller
         private readonly UpdateTicketCommandHandler _updateTicketCommandHandler;
         private readonly DeleteTicketCommandHandler _deleteTicketCommandHandler;
         private readonly AssignTicketCommandHandler _assignTicketCommandHandler;
+        private readonly GetTicketByIdQueryHandler _getTicketByIdQueryHandler;
         public TicketController(
             CreateTicketCommandHandler createTicketCommandHandler,
             UpdateTicketCommandHandler updateTicketCommandHandler,
             DeleteTicketCommandHandler deleteTicketCommandHandler,
-            AssignTicketCommandHandler assignTicketCommandHandler)
+            AssignTicketCommandHandler assignTicketCommandHandler,
+            GetTicketByIdQueryHandler getTicketByIdQueryHandler)
         {
             _createTicketCommandHandler = createTicketCommandHandler;
             _updateTicketCommandHandler = updateTicketCommandHandler;
             _deleteTicketCommandHandler = deleteTicketCommandHandler;
             _assignTicketCommandHandler = assignTicketCommandHandler;
+            _getTicketByIdQueryHandler = getTicketByIdQueryHandler;
         }
 
         [HttpPost]
@@ -110,6 +115,38 @@ namespace TicketManagement.Api.Controller
             command.Id = id;
 
             var result = await _assignTicketCommandHandler.HandleAsync(command);
+            if (result.IsFailure)
+            {
+                return result.Error.ToActionResult();
+            }
+
+            var response = new TicketResponse
+            {
+                Id = result.Value.Id,
+                Title = result.Value.Title,
+                Description = result.Value.Description,
+                Status = result.Value.Status,
+                Priority = result.Value.Priority,
+                Impact = result.Value.Impact,
+                Urgency = result.Value.Urgency,
+                AssignedToUserId = result.Value.AssignedToUserId,
+                CreatedAt = result.Value.CreatedAt
+            };
+
+            return Ok(response);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> Get(int id, CancellationToken cancellationToken)
+        {
+            var query = new GetTicketByIdQuery
+            {
+                Id = id,
+                CurrentUserId = User.GetUserId(),
+                CurrentUserRole = User.GetUserRole()
+            };
+
+            var result = await _getTicketByIdQueryHandler.HandleAsync(query, cancellationToken);
             if (result.IsFailure)
             {
                 return result.Error.ToActionResult();

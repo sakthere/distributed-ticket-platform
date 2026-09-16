@@ -21,6 +21,7 @@ using TicketManagement.Application.Features.Authentication.Logout;
 using TicketManagement.Application.Features.Tickets.Assign;
 using TicketManagement.Application.Features.Tickets.Create;
 using TicketManagement.Application.Features.Tickets.Delete;
+using TicketManagement.Application.Features.Tickets.Get;
 using TicketManagement.Application.Features.Tickets.Update;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -106,6 +107,7 @@ builder.Services.AddScoped<LogoutCommandHandler>();
 builder.Services.AddScoped<UpdateTicketCommandHandler>();
 builder.Services.AddScoped<DeleteTicketCommandHandler>();
 builder.Services.AddScoped<AssignTicketCommandHandler>();
+builder.Services.AddScoped<GetTicketByIdQueryHandler>();
 
 var app = builder.Build();
 
