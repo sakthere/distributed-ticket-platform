@@ -34,11 +34,11 @@
 
 ## Phase 3 - Engineering Improvements
 
-- [ ] Global Exception Middleware
-- [ ] Result Pattern
-- [ ] Unit of Work
+- [x] Global Exception Middleware (implemented alongside Phase 1 error handling - see project error-handling notes)
+- [x] Result Pattern (`Result`/`Result<T>` for business failures - implemented alongside Phase 1)
+- [x] Unit of Work (single `IUnitOfWork.SaveChangesAsync`, replacing per-repository `SaveChangesAsync` - see Sprint 9)
 - [ ] Logging
-- [ ] Health Checks
+- [x] Health Checks (`/health/live`, `/health/ready` - see Sprint 9)
 - [ ] API Versioning
 
 ---

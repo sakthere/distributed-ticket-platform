@@ -15,6 +15,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
 using TicketManagement.Api.Middleware;
+using TicketManagement.Api.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using TicketManagement.Infrastructure.Authentication.RefreshTokens;
 using TicketManagement.Application.Features.Authentication.Common;
 using TicketManagement.Application.Features.Authentication.RefreshToken;
@@ -92,6 +94,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 });
 
 builder.Services.AddAuthorization();
+
+// Two-tier health checks, mirroring how a Kubernetes-style orchestrator
+// (or any load balancer) probes a service:
+//   - Liveness ("is the process alive?"): no dependency checks at all. If this
+//     fails, the process itself is wedged and should be restarted. Checking the
+//     database here would be wrong - a slow/down DB would get a perfectly healthy
+//     process killed and restarted for no reason, which doesn't fix the DB and
+//     can make an outage worse (a restart storm).
+//   - Readiness ("can it currently serve traffic?"): checks the database, since
+//     this API can't do its job without one. If this fails, a load balancer
+//     should stop routing new requests here, but the process should NOT be
+//     restarted - it should recover on its own once the DB is back.
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<ApplicationDbContext>(name: "database", tags: new[] { "ready" });
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
@@ -131,5 +147,17 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = _ => false, // run zero checks - this endpoint only proves the process is up
+    ResponseWriter = HealthCheckResponseWriter.WriteResponse
+});
+
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready"),
+    ResponseWriter = HealthCheckResponseWriter.WriteResponse
+});
 
 app.Run();
