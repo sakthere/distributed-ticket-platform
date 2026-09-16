@@ -1,3 +1,4 @@
+using System.Threading;
 using Moq;
 using TicketManagement.Application.Features.Tickets;
 using TicketManagement.Application.Features.Tickets.ChangeStatus;
@@ -22,7 +23,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.ChangeStatus
         public async Task HandleAsync_WhenAssignedAgentMakesValidTransition_UpdatesAndReturnsSuccess()
         {
             var ticket = new TicketEntity { Id = 1, Status = TicketStatus.Assigned, CreatedByUserId = 7, AssignedToUserId = 10 };
-            _ticketRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(ticket);
+            _ticketRepository.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
 
             var command = new ChangeTicketStatusCommand { Id = 1, NewStatus = TicketStatus.InProgress, CurrentUserId = 10, CurrentUserRole = UserRole.Agent };
 
@@ -37,7 +38,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.ChangeStatus
         public async Task HandleAsync_WhenAdminMakesValidTransitionOnTicketAssignedToSomeoneElse_UpdatesAndReturnsSuccess()
         {
             var ticket = new TicketEntity { Id = 1, Status = TicketStatus.InProgress, CreatedByUserId = 7, AssignedToUserId = 10 };
-            _ticketRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(ticket);
+            _ticketRepository.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
 
             var command = new ChangeTicketStatusCommand { Id = 1, NewStatus = TicketStatus.Resolved, CurrentUserId = 999, CurrentUserRole = UserRole.Admin };
 
@@ -51,7 +52,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.ChangeStatus
         public async Task HandleAsync_WhenAnyAgentRejectsAnUnassignedOpenTicket_UpdatesAndReturnsSuccess()
         {
             var ticket = new TicketEntity { Id = 1, Status = TicketStatus.Open, CreatedByUserId = 7, AssignedToUserId = null };
-            _ticketRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(ticket);
+            _ticketRepository.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
 
             var command = new ChangeTicketStatusCommand { Id = 1, NewStatus = TicketStatus.Rejected, CurrentUserId = 55, CurrentUserRole = UserRole.Agent };
 
@@ -64,7 +65,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.ChangeStatus
         [Fact]
         public async Task HandleAsync_WhenTicketDoesNotExist_ReturnsNotFound()
         {
-            _ticketRepository.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((TicketEntity?)null);
+            _ticketRepository.Setup(r => r.GetByIdAsync(99, It.IsAny<CancellationToken>())).ReturnsAsync((TicketEntity?)null);
 
             var command = new ChangeTicketStatusCommand { Id = 99, NewStatus = TicketStatus.InProgress, CurrentUserId = 1, CurrentUserRole = UserRole.Agent };
 
@@ -78,7 +79,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.ChangeStatus
         public async Task HandleAsync_WhenADifferentAgentTargetsAnAlreadyAssignedTicket_ReturnsNotAssignedAgent()
         {
             var ticket = new TicketEntity { Id = 1, Status = TicketStatus.Assigned, CreatedByUserId = 7, AssignedToUserId = 10 };
-            _ticketRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(ticket);
+            _ticketRepository.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
 
             var command = new ChangeTicketStatusCommand { Id = 1, NewStatus = TicketStatus.InProgress, CurrentUserId = 999, CurrentUserRole = UserRole.Agent };
 
@@ -98,7 +99,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.ChangeStatus
         public async Task HandleAsync_WhenTransitionIsNotAllowed_ReturnsInvalidStatusTransition(TicketStatus from, TicketStatus to)
         {
             var ticket = new TicketEntity { Id = 1, Status = from, CreatedByUserId = 7, AssignedToUserId = 10 };
-            _ticketRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(ticket);
+            _ticketRepository.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
 
             var command = new ChangeTicketStatusCommand { Id = 1, NewStatus = to, CurrentUserId = 10, CurrentUserRole = UserRole.Agent };
 

@@ -1,3 +1,4 @@
+using System.Threading;
 using Moq;
 using TicketManagement.Application.Features.Tickets;
 using TicketManagement.Application.Features.Tickets.Assign;
@@ -34,7 +35,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Assign
         public async Task HandleAsync_WhenAssigneeIsAValidAgentAndTicketIsOpen_AssignsAndReturnsSuccess()
         {
             var ticket = new TicketEntity { Id = 1, Status = TicketStatus.Open, CreatedByUserId = 7 };
-            _ticketRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(ticket);
+            _ticketRepository.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
             _userRepository.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(Agent(10));
 
             var command = new AssignTicketCommand { Id = 1, AssigneeUserId = 10 };
@@ -54,7 +55,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Assign
             // progress that's already been made - only the *first* assignment (Open
             // -> Assigned) should move the status. See Ticket.AssignTo.
             var ticket = new TicketEntity { Id = 1, Status = TicketStatus.InProgress, CreatedByUserId = 7, AssignedToUserId = 10 };
-            _ticketRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(ticket);
+            _ticketRepository.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
             _userRepository.Setup(r => r.GetByIdAsync(20)).ReturnsAsync(Agent(20));
 
             var command = new AssignTicketCommand { Id = 1, AssigneeUserId = 20 };
@@ -70,7 +71,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Assign
         public async Task HandleAsync_WhenFirstAssigningAnOpenTicket_TransitionsStatusToAssigned()
         {
             var ticket = new TicketEntity { Id = 1, Status = TicketStatus.Open, CreatedByUserId = 7 };
-            _ticketRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(ticket);
+            _ticketRepository.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
             _userRepository.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(Agent(10));
 
             var command = new AssignTicketCommand { Id = 1, AssigneeUserId = 10 };
@@ -84,7 +85,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Assign
         [Fact]
         public async Task HandleAsync_WhenTicketDoesNotExist_ReturnsNotFound()
         {
-            _ticketRepository.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((TicketEntity?)null);
+            _ticketRepository.Setup(r => r.GetByIdAsync(99, It.IsAny<CancellationToken>())).ReturnsAsync((TicketEntity?)null);
 
             var command = new AssignTicketCommand { Id = 99, AssigneeUserId = 10 };
 
@@ -101,7 +102,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Assign
         public async Task HandleAsync_WhenTicketIsInTerminalStatus_ReturnsTicketNotAssignable(TicketStatus status)
         {
             var ticket = new TicketEntity { Id = 1, Status = status, CreatedByUserId = 7 };
-            _ticketRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(ticket);
+            _ticketRepository.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
 
             var command = new AssignTicketCommand { Id = 1, AssigneeUserId = 10 };
 
@@ -116,7 +117,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Assign
         public async Task HandleAsync_WhenAssigneeDoesNotExist_ReturnsInvalidAssignee()
         {
             var ticket = new TicketEntity { Id = 1, Status = TicketStatus.Open, CreatedByUserId = 7 };
-            _ticketRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(ticket);
+            _ticketRepository.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
             _userRepository.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((UserEntity?)null);
 
             var command = new AssignTicketCommand { Id = 1, AssigneeUserId = 999 };
@@ -132,7 +133,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Assign
         public async Task HandleAsync_WhenAssigneeIsNotAnAgent_ReturnsInvalidAssignee()
         {
             var ticket = new TicketEntity { Id = 1, Status = TicketStatus.Open, CreatedByUserId = 7 };
-            _ticketRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(ticket);
+            _ticketRepository.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
 
             var notAnAgent = Agent(10);
             notAnAgent.Role = UserRole.Employee;
