@@ -59,11 +59,16 @@ namespace TicketManagement.Application.Tests.Features.Tickets.List
         [Fact]
         public async Task HandleAsync_MapsRepositoryResultsIntoPagedResult()
         {
-            var tickets = new List<TicketEntity>
-            {
-                new() { Id = 1, Title = "A", Status = TicketStatus.Open, Priority = TicketPriority.Low, CreatedByUserId = 42 },
-                new() { Id = 2, Title = "B", Status = TicketStatus.Assigned, Priority = TicketPriority.High, CreatedByUserId = 42, AssignedToUserId = 10 }
-            };
+            // Priority has a private setter (see Sprint 4 - it can only change via
+            // RecalculatePriority(), so an invalid Impact/Urgency/Priority combination
+            // is unrepresentable). Set Impact/Urgency and let the entity derive it,
+            // rather than trying to assign Priority directly.
+            var ticketA = new TicketEntity { Id = 1, Title = "A", Status = TicketStatus.Open, CreatedByUserId = 42, Impact = TicketImpact.Low, Urgency = TicketUrgency.Low };
+            ticketA.RecalculatePriority();
+            var ticketB = new TicketEntity { Id = 2, Title = "B", Status = TicketStatus.Assigned, CreatedByUserId = 42, AssignedToUserId = 10, Impact = TicketImpact.High, Urgency = TicketUrgency.High };
+            ticketB.RecalculatePriority();
+
+            var tickets = new List<TicketEntity> { ticketA, ticketB };
             _ticketRepository
                 .Setup(r => r.GetPagedAsync(It.IsAny<TicketListFilter>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((tickets, 2));
@@ -76,7 +81,9 @@ namespace TicketManagement.Application.Tests.Features.Tickets.List
             Assert.Equal(2, result.Value.TotalCount);
             Assert.Equal(2, result.Value.Items.Count);
             Assert.Equal("A", result.Value.Items[0].Title);
+            Assert.Equal(TicketPriority.Low, result.Value.Items[0].Priority);
             Assert.Equal(10, result.Value.Items[1].AssignedToUserId);
+            Assert.Equal(TicketPriority.Critical, result.Value.Items[1].Priority);
         }
 
         [Theory]
