@@ -89,6 +89,50 @@ Reasoning: Both are technically "invalid token" states, but they mean very diffe
 
 ---
 
+## Sprint 3 — Role-Based Authorization
+
+**Q: What's the difference between authentication (401) and authorization (403), and why is conflating them a common interview mistake?**
+
+Reasoning: Authentication answers "who are you" — a 401 means the server doesn't know, because no valid credential (or token) was presented at all. Authorization answers "are you allowed to do this" — a 403 means the server knows exactly who you are, and the answer is still no. Candidates conflate them because both look like "access denied" from the outside, but they happen at different points in the pipeline and communicate different things to the client: 401 says "log in," 403 says "you're logged in, but this isn't for you."
+
+**Q: Why use role-membership authorization (`[Authorize(Roles=...)]`) here instead of building a resource-based policy right away?**
+
+Reasoning: Role-membership authorization is attribute-based and needs no data — it just checks a claim on the token. Resource-based authorization (e.g. "only the assigned Agent can update this ticket") needs a custom handler that inspects the actual resource, which means there has to be real resource data to check against. Building the resource-based version before the Ticket domain existed would mean guessing at a shape with no evidence. Proving the cheap mechanism first, in isolation, was the deliberate scope.
+
+**Q: If you revoke a user's Admin role right now, are they still Admin? Why?**
+
+Reasoning: Yes, until their current access token expires. This is the same stateless-JWT tradeoff as refresh tokens, showing up in a new place — the role is a claim baked into the token at issue time, not re-checked against the database on every request. Revoking the role in the DB doesn't retroactively change a token that's already out in the world.
+
+**Q: Why use `nameof(UserRole.Admin)` instead of the string `"Admin"` directly in the `[Authorize(Roles=...)]` attribute?**
+
+Reasoning: A hardcoded string has no connection to the enum — rename or remove the enum member, and the string silently goes stale, either locking out or letting in the wrong people at runtime with no warning. `nameof()` ties the attribute to the enum at compile time, so a rename breaks the build loudly instead of failing silently in production.
+
+---
+
+## Sprint 4 — Create Ticket
+
+**Q: Why give `Ticket` its own `RecalculatePriority()` method instead of computing priority in the handler and assigning it?**
+
+Reasoning: This is the rich-domain-model vs anemic-entity distinction. If the handler computes priority and assigns it externally, the entity becomes a passive data bag and the business rule lives somewhere disconnected from the data it governs. Giving `Ticket` the method keeps the rule attached to the entity, and — combined with a `private` setter on `Priority` — makes it structurally impossible to end up with a `Ticket` whose Priority doesn't match its Impact/Urgency.
+
+**Q: `TicketPriorityPolicy` is a plain static class with no interface, in a codebase that otherwise uses DI everywhere. Why no `ITicketPriorityCalculator`?**
+
+Reasoning: Interfaces exist to allow swapping an implementation or mocking it in a test. `TicketPriorityPolicy` is a pure, deterministic function — same inputs always produce the same output, no I/O, nothing to fake. Wrapping it in an interface would add indirection with nothing to show for it. The project's own abstraction rule (only introduce one with a real, current need) applies here.
+
+**Q: Why is `Status` left off `CreateTicketCommand` entirely, instead of accepting it and validating that it's always `Open`?**
+
+Reasoning: Same idea as the `Priority` setter — making illegal states unrepresentable instead of rejecting them at runtime. If `Status` were on the command, a client could technically send `Status: Closed` on creation, and the code would need a runtime check to reject it. Leaving it off the command means a client can't even construct that illegal request — the handler just always sets it to `Open`. Compile-time prevention beats runtime rejection.
+
+**Q: Why did binding the controller to a separate `CreateTicketRequest` DTO silently break validation, when `AuthController` binding directly to `RegisterCommand`/`LoginCommand` works fine?**
+
+Reasoning: ASP.NET Core's FluentValidation auto-validation only fires for the exact type bound as the action parameter. `RegisterCommand` has a validator and is bound directly, so it validates. `CreateTicketRequest` was a new type with no validator of its own — the validator existed for `CreateTicketCommand`, a different type, so nothing ran. It wasn't a framework bug, it was introducing a Clean-Architecture-instinct pattern (separate wire DTO) without checking it against this codebase's established convention first. Fixed by binding directly to the command, matching the existing pattern.
+
+**Q: `CreateTicketResult` and `TicketResponse` currently have identical shapes. Why keep them as two separate types instead of one?**
+
+Reasoning: They serve different contracts even if they look the same today. `CreateTicketResult` is what the Application layer returns internally; `TicketResponse` is the public JSON contract the API exposes. Collapsing them into one type means any future change to either — an internal field the API shouldn't expose, or a JSON-shape change the Application layer doesn't care about — forces a change in a place it doesn't belong. Keeping them separate costs a small amount of duplication now in exchange for the two being free to diverge later without a breaking change on either side.
+
+---
+
 ## Self-Revision Checklist (cumulative)
 
 - [ ] Explain why Clean Architecture's dependency rule matters, with a concrete example of what breaks without it.
@@ -99,7 +143,12 @@ Reasoning: Both are technically "invalid token" states, but they mean very diffe
 - [ ] Explain the XSS-vs-CSRF tradeoff behind HttpOnly cookies.
 - [ ] Explain why `IssueAsync` doesn't save changes itself, and what atomicity problem that solves.
 - [ ] Explain why revocation is checked before expiry in the refresh handler.
+- [ ] Explain 401 vs 403 with a concrete example of each.
+- [ ] Explain why revoking a role doesn't take effect immediately, tying it back to the JWT statelessness tradeoff.
+- [ ] Explain rich domain model vs anemic entity using `Ticket.RecalculatePriority()`.
+- [ ] Explain "illegal states unrepresentable" with two examples from Sprint 4 (`Priority` setter, `Status` omission).
+- [ ] Explain why the Request/Command split broke validation, and why the fix matched an existing convention instead of inventing a new one.
 
 ---
 
-*Last updated: Sprint 2 (Refresh Token Authentication). Add new entries here as each future feature (Role-Based Authorization, Ticket Domain, etc.) is completed — same format: Question, then Reasoning.*
+*Last updated: Sprint 4 (Create Ticket). Add new entries here as each future feature is completed — same format: Question, then Reasoning.*

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using TicketManagement.Application.Interfaces;
 using TicketManagement.Domain.Entities;
 using TicketManagement.Persistence.Context;
@@ -21,9 +22,15 @@ namespace TicketManagement.Persistence.Repositories
         {
             await _context.Tickets.AddAsync(ticket);
         }
+
+        public async Task<Ticket?> GetByIdAsync(int id)
+        {
+           return await _context.Tickets.FirstOrDefaultAsync(x => x.Id == id);
+        }
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();
         }
+
     }
 }

@@ -5,6 +5,7 @@ namespace TicketManagement.Application.Interfaces
     public interface ITicketRepository
     {
         Task AddAsync(Ticket ticket);
+        Task<Ticket?> GetByIdAsync(int id);
         Task SaveChangesAsync();
     }
 }

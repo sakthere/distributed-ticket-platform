@@ -1,4 +1,5 @@
-﻿using TicketManagement.Domain.Enums;
+﻿using System.Net.Sockets;
+using TicketManagement.Domain.Enums;
 using TicketManagement.Domain.Policies;
 
 namespace TicketManagement.Domain.Entities
@@ -20,6 +21,17 @@ namespace TicketManagement.Domain.Entities
         public void RecalculatePriority()
         {
             Priority = TicketPriorityPolicy.Calculate(Impact, Urgency);
+        }
+
+        public void UpdateDetails(string title, string description)
+        {
+            if(Status != TicketStatus.Open)
+            {
+                throw new InvalidOperationException("Ticket details can only be updated while the ticket is Open");
+            }
+            Title = title;
+            Description = description;
+
         }
     }
 }
