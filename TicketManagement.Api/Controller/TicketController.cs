@@ -6,8 +6,10 @@ using TicketManagement.Api.Extensions;
 using TicketManagement.Application.Features.Tickets.Assign;
 using TicketManagement.Application.Features.Tickets.ChangeStatus;
 using TicketManagement.Application.Features.Tickets.Create;
+using TicketManagement.Application.Common;
 using TicketManagement.Application.Features.Tickets.Delete;
 using TicketManagement.Application.Features.Tickets.Get;
+using TicketManagement.Application.Features.Tickets.List;
 using TicketManagement.Application.Features.Tickets.OverridePriority;
 using TicketManagement.Application.Features.Tickets.Update;
 using TicketManagement.Domain.Enums;
@@ -26,6 +28,7 @@ namespace TicketManagement.Api.Controller
         private readonly GetTicketByIdQueryHandler _getTicketByIdQueryHandler;
         private readonly ChangeTicketStatusCommandHandler _changeTicketStatusCommandHandler;
         private readonly OverrideTicketPriorityCommandHandler _overrideTicketPriorityCommandHandler;
+        private readonly GetTicketsQueryHandler _getTicketsQueryHandler;
         public TicketController(
             CreateTicketCommandHandler createTicketCommandHandler,
             UpdateTicketCommandHandler updateTicketCommandHandler,
@@ -33,7 +36,8 @@ namespace TicketManagement.Api.Controller
             AssignTicketCommandHandler assignTicketCommandHandler,
             GetTicketByIdQueryHandler getTicketByIdQueryHandler,
             ChangeTicketStatusCommandHandler changeTicketStatusCommandHandler,
-            OverrideTicketPriorityCommandHandler overrideTicketPriorityCommandHandler)
+            OverrideTicketPriorityCommandHandler overrideTicketPriorityCommandHandler,
+            GetTicketsQueryHandler getTicketsQueryHandler)
         {
             _createTicketCommandHandler = createTicketCommandHandler;
             _updateTicketCommandHandler = updateTicketCommandHandler;
@@ -42,6 +46,7 @@ namespace TicketManagement.Api.Controller
             _getTicketByIdQueryHandler = getTicketByIdQueryHandler;
             _changeTicketStatusCommandHandler = changeTicketStatusCommandHandler;
             _overrideTicketPriorityCommandHandler = overrideTicketPriorityCommandHandler;
+            _getTicketsQueryHandler = getTicketsQueryHandler;
         }
 
         [HttpPost]
@@ -231,6 +236,38 @@ namespace TicketManagement.Api.Controller
                 Urgency = result.Value.Urgency,
                 AssignedToUserId = result.Value.AssignedToUserId,
                 CreatedAt = result.Value.CreatedAt
+            };
+
+            return Ok(response);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetList([FromQuery] GetTicketsQuery query, CancellationToken cancellationToken)
+        {
+            query.CurrentUserId = User.GetUserId();
+            query.CurrentUserRole = User.GetUserRole();
+
+            var result = await _getTicketsQueryHandler.HandleAsync(query, cancellationToken);
+            if (result.IsFailure)
+            {
+                return result.Error.ToActionResult();
+            }
+
+            var response = new PagedResult<TicketSummaryResponse>
+            {
+                Items = result.Value.Items.Select(t => new TicketSummaryResponse
+                {
+                    Id = t.Id,
+                    Title = t.Title,
+                    Status = t.Status,
+                    Priority = t.Priority,
+                    CreatedByUserId = t.CreatedByUserId,
+                    AssignedToUserId = t.AssignedToUserId,
+                    CreatedAt = t.CreatedAt
+                }).ToList(),
+                TotalCount = result.Value.TotalCount,
+                Page = result.Value.Page,
+                PageSize = result.Value.PageSize
             };
 
             return Ok(response);

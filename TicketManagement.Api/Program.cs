@@ -23,6 +23,7 @@ using TicketManagement.Application.Features.Tickets.ChangeStatus;
 using TicketManagement.Application.Features.Tickets.Create;
 using TicketManagement.Application.Features.Tickets.Delete;
 using TicketManagement.Application.Features.Tickets.Get;
+using TicketManagement.Application.Features.Tickets.List;
 using TicketManagement.Application.Features.Tickets.OverridePriority;
 using TicketManagement.Application.Features.Tickets.Update;
 
@@ -112,6 +113,7 @@ builder.Services.AddScoped<AssignTicketCommandHandler>();
 builder.Services.AddScoped<GetTicketByIdQueryHandler>();
 builder.Services.AddScoped<ChangeTicketStatusCommandHandler>();
 builder.Services.AddScoped<OverrideTicketPriorityCommandHandler>();
+builder.Services.AddScoped<GetTicketsQueryHandler>();
 
 var app = builder.Build();
 

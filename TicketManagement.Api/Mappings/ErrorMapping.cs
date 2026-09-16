@@ -27,6 +27,7 @@ namespace TicketManagement.Api.Mappings
                 var e when e == TicketErrors.InvalidStatusTransition => StatusCodes.Status409Conflict,
                 var e when e == TicketErrors.NotAssignedAgent => StatusCodes.Status403Forbidden,
                 var e when e == TicketErrors.TicketPriorityNotEditable => StatusCodes.Status409Conflict,
+                var e when e == TicketErrors.InvalidPagination => StatusCodes.Status400BadRequest,
                 _ => StatusCodes.Status400BadRequest
             };
 
