@@ -15,6 +15,8 @@ namespace TicketManagement.Application.Features.Tickets
         public static readonly Error TicketNotDeletable = new("TICKET004", "This ticket can no longer be deleted");
         public static readonly Error InvalidAssignee = new("TICKET005", "The specified user cannot be assigned tickets");
         public static readonly Error TicketNotAssignable = new("TICKET006", "This ticket cannot be assigned in its current state");
+        public static readonly Error InvalidStatusTransition = new("TICKET007", "This status transition is not allowed");
+        public static readonly Error NotAssignedAgent = new("TICKET008", "You do not have permission to change this ticket's status");
 
     }
 }

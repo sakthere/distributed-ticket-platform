@@ -48,9 +48,12 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Assign
         }
 
         [Fact]
-        public async Task HandleAsync_WhenReassigningANonTerminalTicket_ReassignsToNewAgent()
+        public async Task HandleAsync_WhenReassigningANonTerminalTicket_ReassignsToNewAgentWithoutResettingStatus()
         {
-            var ticket = new TicketEntity { Id = 1, Status = TicketStatus.Assigned, CreatedByUserId = 7, AssignedToUserId = 10 };
+            // Reassignment (Assigned/InProgress -> a different agent) must not reset
+            // progress that's already been made - only the *first* assignment (Open
+            // -> Assigned) should move the status. See Ticket.AssignTo.
+            var ticket = new TicketEntity { Id = 1, Status = TicketStatus.InProgress, CreatedByUserId = 7, AssignedToUserId = 10 };
             _ticketRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(ticket);
             _userRepository.Setup(r => r.GetByIdAsync(20)).ReturnsAsync(Agent(20));
 
@@ -60,6 +63,22 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Assign
 
             Assert.True(result.IsSuccess);
             Assert.Equal(20, ticket.AssignedToUserId);
+            Assert.Equal(TicketStatus.InProgress, ticket.Status);
+        }
+
+        [Fact]
+        public async Task HandleAsync_WhenFirstAssigningAnOpenTicket_TransitionsStatusToAssigned()
+        {
+            var ticket = new TicketEntity { Id = 1, Status = TicketStatus.Open, CreatedByUserId = 7 };
+            _ticketRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(ticket);
+            _userRepository.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(Agent(10));
+
+            var command = new AssignTicketCommand { Id = 1, AssigneeUserId = 10 };
+
+            var result = await _handler.HandleAsync(command);
+
+            Assert.True(result.IsSuccess);
+            Assert.Equal(TicketStatus.Assigned, ticket.Status);
         }
 
         [Fact]
