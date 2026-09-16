@@ -33,5 +33,10 @@ namespace TicketManagement.Domain.Entities
             Description = description;
 
         }
+
+        public void Delete()
+        {
+            IsDeleted = true;
+        }
     }
 }

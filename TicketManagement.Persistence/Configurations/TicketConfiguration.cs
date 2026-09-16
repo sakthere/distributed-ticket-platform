@@ -25,6 +25,11 @@ namespace TicketManagement.Persistence.Configurations
 
             builder.HasOne(x => x.AssignedToUser).WithMany(x => x.AssignedTickets).
                 HasForeignKey(x => x.AssignedToUserId).OnDelete(DeleteBehavior.Restrict);
+
+            // Soft-deleted tickets are excluded from every query by default so callers
+            // don't have to remember to filter IsDeleted themselves. Use IgnoreQueryFilters()
+            // on the rare query (e.g. an admin "recover" screen) that genuinely needs them.
+            builder.HasQueryFilter(t => !t.IsDeleted);
         }
     }
 }

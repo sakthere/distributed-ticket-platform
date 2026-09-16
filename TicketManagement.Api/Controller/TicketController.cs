@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using TicketManagement.Api.Contract.Tickets;
 using TicketManagement.Api.Extensions;
 using TicketManagement.Application.Features.Tickets.Create;
+using TicketManagement.Application.Features.Tickets.Delete;
 using TicketManagement.Application.Features.Tickets.Update;
 
 namespace TicketManagement.Api.Controller
@@ -14,10 +15,15 @@ namespace TicketManagement.Api.Controller
     {
         private readonly CreateTicketCommandHandler _createTicketCommandHandler;
         private readonly UpdateTicketCommandHandler _updateTicketCommandHandler;
-        public TicketController(CreateTicketCommandHandler createTicketCommandHandler, UpdateTicketCommandHandler updateTicketCommandHandler)
+        private readonly DeleteTicketCommandHandler _deleteTicketCommandHandler;
+        public TicketController(
+            CreateTicketCommandHandler createTicketCommandHandler,
+            UpdateTicketCommandHandler updateTicketCommandHandler,
+            DeleteTicketCommandHandler deleteTicketCommandHandler)
         {
             _createTicketCommandHandler = createTicketCommandHandler;
             _updateTicketCommandHandler = updateTicketCommandHandler;
+            _deleteTicketCommandHandler = deleteTicketCommandHandler;
         }
 
         [HttpPost]
@@ -72,6 +78,25 @@ namespace TicketManagement.Api.Controller
 
             return Ok(response);
         }
-        
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var command = new DeleteTicketCommand
+            {
+                Id = id,
+                CurrentUserId = User.GetUserId(),
+                CurrentUserRole = User.GetUserRole()
+            };
+
+            var result = await _deleteTicketCommandHandler.HandleAsync(command);
+            if (result.IsFailure)
+            {
+                return result.Error.ToActionResult();
+            }
+
+            return NoContent();
+        }
+
     }
 }
