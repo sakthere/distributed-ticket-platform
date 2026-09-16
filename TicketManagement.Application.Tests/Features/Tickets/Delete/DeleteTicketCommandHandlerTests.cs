@@ -1,3 +1,4 @@
+using System.Threading;
 using Moq;
 using TicketManagement.Application.Features.Tickets;
 using TicketManagement.Application.Features.Tickets.Delete;
@@ -22,7 +23,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Delete
         public async Task HandleAsync_WhenOwnerDeletesOpenTicket_SoftDeletesAndReturnsSuccess()
         {
             var ticket = new TicketEntity { Id = 1, Status = TicketStatus.Open, CreatedByUserId = 42 };
-            _ticketRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(ticket);
+            _ticketRepository.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
 
             var command = new DeleteTicketCommand { Id = 1, CurrentUserId = 42, CurrentUserRole = UserRole.Employee };
 
@@ -37,7 +38,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Delete
         public async Task HandleAsync_WhenAdminDeletesTicketInAnyStatus_SoftDeletesAndReturnsSuccess()
         {
             var ticket = new TicketEntity { Id = 1, Status = TicketStatus.InProgress, CreatedByUserId = 42 };
-            _ticketRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(ticket);
+            _ticketRepository.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
 
             var command = new DeleteTicketCommand { Id = 1, CurrentUserId = 999, CurrentUserRole = UserRole.Admin };
 
@@ -51,7 +52,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Delete
         [Fact]
         public async Task HandleAsync_WhenTicketDoesNotExist_ReturnsNotFound()
         {
-            _ticketRepository.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((TicketEntity?)null);
+            _ticketRepository.Setup(r => r.GetByIdAsync(99, It.IsAny<CancellationToken>())).ReturnsAsync((TicketEntity?)null);
 
             var command = new DeleteTicketCommand { Id = 99, CurrentUserId = 1, CurrentUserRole = UserRole.Employee };
 
@@ -66,7 +67,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Delete
         public async Task HandleAsync_WhenCallerIsNeitherOwnerNorAdmin_ReturnsNotTicketOwner()
         {
             var ticket = new TicketEntity { Id = 1, Status = TicketStatus.Open, CreatedByUserId = 42 };
-            _ticketRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(ticket);
+            _ticketRepository.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
 
             var command = new DeleteTicketCommand { Id = 1, CurrentUserId = 999, CurrentUserRole = UserRole.Employee };
 
@@ -81,7 +82,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Delete
         public async Task HandleAsync_WhenOwnerDeletesNonOpenTicket_ReturnsTicketNotDeletable()
         {
             var ticket = new TicketEntity { Id = 1, Status = TicketStatus.InProgress, CreatedByUserId = 42 };
-            _ticketRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(ticket);
+            _ticketRepository.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
 
             var command = new DeleteTicketCommand { Id = 1, CurrentUserId = 42, CurrentUserRole = UserRole.Employee };
 

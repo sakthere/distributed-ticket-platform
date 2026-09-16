@@ -19,6 +19,7 @@ using TicketManagement.Application.Features.Authentication.Common;
 using TicketManagement.Application.Features.Authentication.RefreshToken;
 using TicketManagement.Application.Features.Authentication.Logout;
 using TicketManagement.Application.Features.Tickets.Assign;
+using TicketManagement.Application.Features.Tickets.ChangeStatus;
 using TicketManagement.Application.Features.Tickets.Create;
 using TicketManagement.Application.Features.Tickets.Delete;
 using TicketManagement.Application.Features.Tickets.Get;
@@ -108,6 +109,7 @@ builder.Services.AddScoped<UpdateTicketCommandHandler>();
 builder.Services.AddScoped<DeleteTicketCommandHandler>();
 builder.Services.AddScoped<AssignTicketCommandHandler>();
 builder.Services.AddScoped<GetTicketByIdQueryHandler>();
+builder.Services.AddScoped<ChangeTicketStatusCommandHandler>();
 
 var app = builder.Build();
 

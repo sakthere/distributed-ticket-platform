@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using TicketManagement.Api.Contract.Tickets;
 using TicketManagement.Api.Extensions;
 using TicketManagement.Application.Features.Tickets.Assign;
+using TicketManagement.Application.Features.Tickets.ChangeStatus;
 using TicketManagement.Application.Features.Tickets.Create;
 using TicketManagement.Application.Features.Tickets.Delete;
 using TicketManagement.Application.Features.Tickets.Get;
@@ -22,18 +23,21 @@ namespace TicketManagement.Api.Controller
         private readonly DeleteTicketCommandHandler _deleteTicketCommandHandler;
         private readonly AssignTicketCommandHandler _assignTicketCommandHandler;
         private readonly GetTicketByIdQueryHandler _getTicketByIdQueryHandler;
+        private readonly ChangeTicketStatusCommandHandler _changeTicketStatusCommandHandler;
         public TicketController(
             CreateTicketCommandHandler createTicketCommandHandler,
             UpdateTicketCommandHandler updateTicketCommandHandler,
             DeleteTicketCommandHandler deleteTicketCommandHandler,
             AssignTicketCommandHandler assignTicketCommandHandler,
-            GetTicketByIdQueryHandler getTicketByIdQueryHandler)
+            GetTicketByIdQueryHandler getTicketByIdQueryHandler,
+            ChangeTicketStatusCommandHandler changeTicketStatusCommandHandler)
         {
             _createTicketCommandHandler = createTicketCommandHandler;
             _updateTicketCommandHandler = updateTicketCommandHandler;
             _deleteTicketCommandHandler = deleteTicketCommandHandler;
             _assignTicketCommandHandler = assignTicketCommandHandler;
             _getTicketByIdQueryHandler = getTicketByIdQueryHandler;
+            _changeTicketStatusCommandHandler = changeTicketStatusCommandHandler;
         }
 
         [HttpPost]
@@ -147,6 +151,36 @@ namespace TicketManagement.Api.Controller
             };
 
             var result = await _getTicketByIdQueryHandler.HandleAsync(query, cancellationToken);
+            if (result.IsFailure)
+            {
+                return result.Error.ToActionResult();
+            }
+
+            var response = new TicketResponse
+            {
+                Id = result.Value.Id,
+                Title = result.Value.Title,
+                Description = result.Value.Description,
+                Status = result.Value.Status,
+                Priority = result.Value.Priority,
+                Impact = result.Value.Impact,
+                Urgency = result.Value.Urgency,
+                AssignedToUserId = result.Value.AssignedToUserId,
+                CreatedAt = result.Value.CreatedAt
+            };
+
+            return Ok(response);
+        }
+
+        [HttpPatch("{id}/status")]
+        [Authorize(Roles = $"{nameof(UserRole.Agent)},{nameof(UserRole.Admin)}")]
+        public async Task<IActionResult> ChangeStatus(int id, ChangeTicketStatusCommand command)
+        {
+            command.Id = id;
+            command.CurrentUserId = User.GetUserId();
+            command.CurrentUserRole = User.GetUserRole();
+
+            var result = await _changeTicketStatusCommandHandler.HandleAsync(command);
             if (result.IsFailure)
             {
                 return result.Error.ToActionResult();

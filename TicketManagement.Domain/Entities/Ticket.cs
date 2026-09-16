@@ -47,7 +47,24 @@ namespace TicketManagement.Domain.Entities
             }
 
             AssignedToUserId = agentUserId;
-            Status = TicketStatus.Assigned;
+
+            // Only the first assignment moves the ticket out of Open. Reassigning a
+            // ticket that's already Assigned or InProgress to a different agent just
+            // changes who owns it - it doesn't reset progress that's already been made.
+            if (Status == TicketStatus.Open)
+            {
+                Status = TicketStatus.Assigned;
+            }
+        }
+
+        public void ChangeStatus(TicketStatus newStatus)
+        {
+            if (!TicketStatusPolicy.IsValidTransition(Status, newStatus))
+            {
+                throw new InvalidOperationException($"Cannot transition ticket from {Status} to {newStatus}.");
+            }
+
+            Status = newStatus;
         }
     }
 }
