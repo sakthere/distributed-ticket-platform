@@ -8,6 +8,7 @@ using TicketManagement.Application.Features.Tickets.ChangeStatus;
 using TicketManagement.Application.Features.Tickets.Create;
 using TicketManagement.Application.Features.Tickets.Delete;
 using TicketManagement.Application.Features.Tickets.Get;
+using TicketManagement.Application.Features.Tickets.OverridePriority;
 using TicketManagement.Application.Features.Tickets.Update;
 using TicketManagement.Domain.Enums;
 
@@ -24,13 +25,15 @@ namespace TicketManagement.Api.Controller
         private readonly AssignTicketCommandHandler _assignTicketCommandHandler;
         private readonly GetTicketByIdQueryHandler _getTicketByIdQueryHandler;
         private readonly ChangeTicketStatusCommandHandler _changeTicketStatusCommandHandler;
+        private readonly OverrideTicketPriorityCommandHandler _overrideTicketPriorityCommandHandler;
         public TicketController(
             CreateTicketCommandHandler createTicketCommandHandler,
             UpdateTicketCommandHandler updateTicketCommandHandler,
             DeleteTicketCommandHandler deleteTicketCommandHandler,
             AssignTicketCommandHandler assignTicketCommandHandler,
             GetTicketByIdQueryHandler getTicketByIdQueryHandler,
-            ChangeTicketStatusCommandHandler changeTicketStatusCommandHandler)
+            ChangeTicketStatusCommandHandler changeTicketStatusCommandHandler,
+            OverrideTicketPriorityCommandHandler overrideTicketPriorityCommandHandler)
         {
             _createTicketCommandHandler = createTicketCommandHandler;
             _updateTicketCommandHandler = updateTicketCommandHandler;
@@ -38,6 +41,7 @@ namespace TicketManagement.Api.Controller
             _assignTicketCommandHandler = assignTicketCommandHandler;
             _getTicketByIdQueryHandler = getTicketByIdQueryHandler;
             _changeTicketStatusCommandHandler = changeTicketStatusCommandHandler;
+            _overrideTicketPriorityCommandHandler = overrideTicketPriorityCommandHandler;
         }
 
         [HttpPost]
@@ -181,6 +185,36 @@ namespace TicketManagement.Api.Controller
             command.CurrentUserRole = User.GetUserRole();
 
             var result = await _changeTicketStatusCommandHandler.HandleAsync(command);
+            if (result.IsFailure)
+            {
+                return result.Error.ToActionResult();
+            }
+
+            var response = new TicketResponse
+            {
+                Id = result.Value.Id,
+                Title = result.Value.Title,
+                Description = result.Value.Description,
+                Status = result.Value.Status,
+                Priority = result.Value.Priority,
+                Impact = result.Value.Impact,
+                Urgency = result.Value.Urgency,
+                AssignedToUserId = result.Value.AssignedToUserId,
+                CreatedAt = result.Value.CreatedAt
+            };
+
+            return Ok(response);
+        }
+
+        [HttpPatch("{id}/priority")]
+        [Authorize(Roles = $"{nameof(UserRole.Agent)},{nameof(UserRole.Admin)}")]
+        public async Task<IActionResult> OverridePriority(int id, OverrideTicketPriorityCommand command)
+        {
+            command.Id = id;
+            command.CurrentUserId = User.GetUserId();
+            command.CurrentUserRole = User.GetUserRole();
+
+            var result = await _overrideTicketPriorityCommandHandler.HandleAsync(command);
             if (result.IsFailure)
             {
                 return result.Error.ToActionResult();

@@ -66,5 +66,17 @@ namespace TicketManagement.Domain.Entities
 
             Status = newStatus;
         }
+
+        public void OverridePriority(TicketImpact impact, TicketUrgency urgency)
+        {
+            if (Status is TicketStatus.Resolved or TicketStatus.Closed or TicketStatus.Rejected)
+            {
+                throw new InvalidOperationException("Cannot change priority on a ticket that has reached a terminal status.");
+            }
+
+            Impact = impact;
+            Urgency = urgency;
+            RecalculatePriority();
+        }
     }
 }
