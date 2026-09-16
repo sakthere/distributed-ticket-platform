@@ -33,5 +33,21 @@ namespace TicketManagement.Domain.Entities
             Description = description;
 
         }
+
+        public void Delete()
+        {
+            IsDeleted = true;
+        }
+
+        public void AssignTo(int agentUserId)
+        {
+            if (Status is TicketStatus.Resolved or TicketStatus.Closed or TicketStatus.Rejected)
+            {
+                throw new InvalidOperationException("Cannot assign a ticket that has reached a terminal status.");
+            }
+
+            AssignedToUserId = agentUserId;
+            Status = TicketStatus.Assigned;
+        }
     }
 }

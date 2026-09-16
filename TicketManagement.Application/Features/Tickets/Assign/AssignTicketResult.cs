@@ -1,8 +1,8 @@
-﻿using TicketManagement.Domain.Enums;
+using TicketManagement.Domain.Enums;
 
-namespace TicketManagement.Api.Contract.Tickets
+namespace TicketManagement.Application.Features.Tickets.Assign
 {
-    public class TicketResponse
+    public class AssignTicketResult
     {
         public int Id { get; set; }
         public string Title { get; set; } = string.Empty;

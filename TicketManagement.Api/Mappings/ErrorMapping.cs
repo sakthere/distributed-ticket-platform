@@ -21,6 +21,9 @@ namespace TicketManagement.Api.Mappings
                 var e when e == TicketErrors.NotFound => StatusCodes.Status404NotFound,
                 var e when e == TicketErrors.NotTicketOwner => StatusCodes.Status403Forbidden,
                 var e when e == TicketErrors.TicketNotEditable => StatusCodes.Status409Conflict,
+                var e when e == TicketErrors.TicketNotDeletable => StatusCodes.Status409Conflict,
+                var e when e == TicketErrors.InvalidAssignee => StatusCodes.Status400BadRequest,
+                var e when e == TicketErrors.TicketNotAssignable => StatusCodes.Status409Conflict,
                 _ => StatusCodes.Status400BadRequest
             };
 

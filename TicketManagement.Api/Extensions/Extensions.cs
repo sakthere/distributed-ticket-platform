@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using TicketManagement.Api.Mappings;
 using TicketManagement.Application.Common;
+using TicketManagement.Domain.Enums;
 
 namespace TicketManagement.Api.Extensions
 {
@@ -15,6 +16,12 @@ namespace TicketManagement.Api.Extensions
         {
             var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             return int.Parse(userIdClaim!);
+        }
+
+        public static UserRole GetUserRole(this ClaimsPrincipal user)
+        {
+            var roleClaim = user.FindFirst(ClaimTypes.Role)?.Value;
+            return Enum.Parse<UserRole>(roleClaim!);
         }
     }
 }
