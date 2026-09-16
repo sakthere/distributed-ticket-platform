@@ -8,11 +8,13 @@ namespace TicketManagement.Application.Features.Tickets.Assign
     {
         private readonly ITicketRepository _ticketRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public AssignTicketCommandHandler(ITicketRepository ticketRepository, IUserRepository userRepository)
+        public AssignTicketCommandHandler(ITicketRepository ticketRepository, IUserRepository userRepository, IUnitOfWork unitOfWork)
         {
             _ticketRepository = ticketRepository;
             _userRepository = userRepository;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<Result<AssignTicketResult>> HandleAsync(AssignTicketCommand command)
@@ -35,7 +37,7 @@ namespace TicketManagement.Application.Features.Tickets.Assign
             }
 
             ticket.AssignTo(assignee.Id);
-            await _ticketRepository.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
 
             return Result<AssignTicketResult>.Success(new AssignTicketResult
             {

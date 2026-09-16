@@ -31,10 +31,5 @@ namespace TicketManagement.Persistence.Repositories
             await _context.RefreshTokens.Where(rt => rt.SessionId == sessionId && !rt.IsRevoked).
                 ExecuteUpdateAsync(s => s.SetProperty(rt => rt.IsRevoked, true).SetProperty(rt => rt.RevokedAt, DateTime.UtcNow));
         }
-
-        public async Task SaveChangesAsync()
-        {
-            await _context.SaveChangesAsync();
-        }
     }
 }

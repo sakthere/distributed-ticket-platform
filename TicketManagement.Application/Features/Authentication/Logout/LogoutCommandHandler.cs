@@ -7,11 +7,13 @@ namespace TicketManagement.Application.Features.Authentication.Logout
     {
         private readonly IRefreshTokenRepository _refreshTokenRepository;
         private readonly IRefreshTokenHasher _refreshTokenHasher;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public LogoutCommandHandler(IRefreshTokenRepository refreshTokenRepository, IRefreshTokenHasher refreshTokenHasher)
+        public LogoutCommandHandler(IRefreshTokenRepository refreshTokenRepository, IRefreshTokenHasher refreshTokenHasher, IUnitOfWork unitOfWork)
         {
             _refreshTokenRepository = refreshTokenRepository;
             _refreshTokenHasher = refreshTokenHasher;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<Result> HandleAsync(LogoutCommand command)
@@ -28,7 +30,7 @@ namespace TicketManagement.Application.Features.Authentication.Logout
             }
             token.IsRevoked = true;
             token.RevokedAt = DateTime.UtcNow;
-            await _refreshTokenRepository.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
             return Result.Success();
         }
     }

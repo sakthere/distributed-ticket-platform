@@ -7,6 +7,7 @@ using TicketManagement.Application.Features.Authentication.Register;
 using TicketManagement.Application.Interfaces;
 using TicketManagement.Infrastructure.Authentication.Hashing;
 using TicketManagement.Infrastructure.Authentication.Jwt;
+using TicketManagement.Persistence;
 using TicketManagement.Persistence.Context;
 using TicketManagement.Persistence.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -92,6 +93,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<RegisterCommandHandler>();
 builder.Services.AddScoped<LoginCommandHandler>();

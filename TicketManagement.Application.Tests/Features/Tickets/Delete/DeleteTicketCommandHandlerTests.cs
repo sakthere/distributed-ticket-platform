@@ -12,11 +12,12 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Delete
     public class DeleteTicketCommandHandlerTests
     {
         private readonly Mock<ITicketRepository> _ticketRepository = new();
+        private readonly Mock<IUnitOfWork> _unitOfWork = new();
         private readonly DeleteTicketCommandHandler _handler;
 
         public DeleteTicketCommandHandlerTests()
         {
-            _handler = new DeleteTicketCommandHandler(_ticketRepository.Object);
+            _handler = new DeleteTicketCommandHandler(_ticketRepository.Object, _unitOfWork.Object);
         }
 
         [Fact]
@@ -31,7 +32,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Delete
 
             Assert.True(result.IsSuccess);
             Assert.True(ticket.IsDeleted);
-            _ticketRepository.Verify(r => r.SaveChangesAsync(), Times.Once);
+            _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -46,7 +47,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Delete
 
             Assert.True(result.IsSuccess);
             Assert.True(ticket.IsDeleted);
-            _ticketRepository.Verify(r => r.SaveChangesAsync(), Times.Once);
+            _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -60,7 +61,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Delete
 
             Assert.True(result.IsFailure);
             Assert.Equal(TicketErrors.NotFound, result.Error);
-            _ticketRepository.Verify(r => r.SaveChangesAsync(), Times.Never);
+            _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]
@@ -75,7 +76,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Delete
 
             Assert.True(result.IsFailure);
             Assert.Equal(TicketErrors.NotTicketOwner, result.Error);
-            _ticketRepository.Verify(r => r.SaveChangesAsync(), Times.Never);
+            _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]
@@ -90,7 +91,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Delete
 
             Assert.True(result.IsFailure);
             Assert.Equal(TicketErrors.TicketNotDeletable, result.Error);
-            _ticketRepository.Verify(r => r.SaveChangesAsync(), Times.Never);
+            _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
     }
 }

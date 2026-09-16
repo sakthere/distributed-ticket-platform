@@ -10,12 +10,12 @@ namespace TicketManagement.Application.Features.Authentication.Login
         private readonly IPasswordHasher _passwordHasher;
         private readonly IAuthSessionIssuer _authSessionIssuer;
         private readonly IUserRepository _userRepository;
-        private readonly IRefreshTokenRepository _refreshTokenRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public LoginCommandHandler(IAuthSessionIssuer authSessionIssuer, IRefreshTokenRepository refreshTokenRepository, IUserRepository userRepository, IPasswordHasher passwordHasher)
+        public LoginCommandHandler(IAuthSessionIssuer authSessionIssuer, IUnitOfWork unitOfWork, IUserRepository userRepository, IPasswordHasher passwordHasher)
         {
             _authSessionIssuer = authSessionIssuer;
-            _refreshTokenRepository = refreshTokenRepository;
+            _unitOfWork = unitOfWork;
             _userRepository = userRepository;
             _passwordHasher = passwordHasher;
         }
@@ -33,7 +33,7 @@ namespace TicketManagement.Application.Features.Authentication.Login
                 return Result<LoginResult>.Failure(AuthErrors.InvalidCredentails);
             }
             var session = await _authSessionIssuer.IssueAsync(user);
-            await _refreshTokenRepository.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
 
             return Result<LoginResult>.Success(new LoginResult
             {

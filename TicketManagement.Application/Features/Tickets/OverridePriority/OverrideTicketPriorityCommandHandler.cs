@@ -7,9 +7,11 @@ namespace TicketManagement.Application.Features.Tickets.OverridePriority
     public class OverrideTicketPriorityCommandHandler
     {
         private readonly ITicketRepository _ticketRepository;
-        public OverrideTicketPriorityCommandHandler(ITicketRepository ticketRepository)
+        private readonly IUnitOfWork _unitOfWork;
+        public OverrideTicketPriorityCommandHandler(ITicketRepository ticketRepository, IUnitOfWork unitOfWork)
         {
             _ticketRepository = ticketRepository;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<Result<OverrideTicketPriorityResult>> HandleAsync(OverrideTicketPriorityCommand command)
@@ -37,7 +39,7 @@ namespace TicketManagement.Application.Features.Tickets.OverridePriority
             }
 
             ticket.OverridePriority(command.Impact, command.Urgency);
-            await _ticketRepository.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
 
             return Result<OverrideTicketPriorityResult>.Success(new OverrideTicketPriorityResult
             {

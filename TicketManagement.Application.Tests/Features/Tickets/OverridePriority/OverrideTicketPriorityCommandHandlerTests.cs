@@ -12,11 +12,12 @@ namespace TicketManagement.Application.Tests.Features.Tickets.OverridePriority
     public class OverrideTicketPriorityCommandHandlerTests
     {
         private readonly Mock<ITicketRepository> _ticketRepository = new();
+        private readonly Mock<IUnitOfWork> _unitOfWork = new();
         private readonly OverrideTicketPriorityCommandHandler _handler;
 
         public OverrideTicketPriorityCommandHandlerTests()
         {
-            _handler = new OverrideTicketPriorityCommandHandler(_ticketRepository.Object);
+            _handler = new OverrideTicketPriorityCommandHandler(_ticketRepository.Object, _unitOfWork.Object);
         }
 
         [Fact]
@@ -48,7 +49,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.OverridePriority
             Assert.Equal(TicketImpact.High, ticket.Impact);
             Assert.Equal(TicketUrgency.High, ticket.Urgency);
             Assert.Equal(TicketPriority.Critical, ticket.Priority);
-            _ticketRepository.Verify(r => r.SaveChangesAsync(), Times.Once);
+            _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -102,7 +103,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.OverridePriority
 
             Assert.True(result.IsFailure);
             Assert.Equal(TicketErrors.NotAssignedAgent, result.Error);
-            _ticketRepository.Verify(r => r.SaveChangesAsync(), Times.Never);
+            _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Theory]
@@ -120,7 +121,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.OverridePriority
 
             Assert.True(result.IsFailure);
             Assert.Equal(TicketErrors.TicketPriorityNotEditable, result.Error);
-            _ticketRepository.Verify(r => r.SaveChangesAsync(), Times.Never);
+            _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
     }
 }

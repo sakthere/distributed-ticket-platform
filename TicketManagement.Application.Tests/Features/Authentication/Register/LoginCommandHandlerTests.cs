@@ -12,11 +12,11 @@ namespace TicketManagement.Application.Tests.Features.Authentication.Register
         private readonly Mock<IPasswordHasher> _passwordHasher = new();
         private readonly Mock<IAuthSessionIssuer> _authSessionIssuer = new();
         private readonly Mock<IUserRepository> _userRepository = new();
-        private readonly Mock<IRefreshTokenRepository> _refreshTokenRepository = new();
+        private readonly Mock<IUnitOfWork> _unitOfWork = new();
         private readonly LoginCommandHandler _handler;
         public LoginCommandHandlerTests()
         {
-            _handler = new LoginCommandHandler(_authSessionIssuer.Object, _refreshTokenRepository.Object, _userRepository.Object, _passwordHasher.Object);
+            _handler = new LoginCommandHandler(_authSessionIssuer.Object, _unitOfWork.Object, _userRepository.Object, _passwordHasher.Object);
         }
 
         [Fact]

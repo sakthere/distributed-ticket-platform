@@ -12,6 +12,5 @@ namespace TicketManagement.Application.Interfaces
         Task AddAsync(RefreshToken refreshToken);
         Task<RefreshToken?> GetByHashAsync(string tokenHash);
         Task RevokeSessionFamilyAsync(Guid sessionId);
-        Task SaveChangesAsync();
     }
 }

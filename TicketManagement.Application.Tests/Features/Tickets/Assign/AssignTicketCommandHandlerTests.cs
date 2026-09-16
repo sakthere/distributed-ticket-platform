@@ -14,11 +14,12 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Assign
     {
         private readonly Mock<ITicketRepository> _ticketRepository = new();
         private readonly Mock<IUserRepository> _userRepository = new();
+        private readonly Mock<IUnitOfWork> _unitOfWork = new();
         private readonly AssignTicketCommandHandler _handler;
 
         public AssignTicketCommandHandlerTests()
         {
-            _handler = new AssignTicketCommandHandler(_ticketRepository.Object, _userRepository.Object);
+            _handler = new AssignTicketCommandHandler(_ticketRepository.Object, _userRepository.Object, _unitOfWork.Object);
         }
 
         private static UserEntity Agent(int id) => new()
@@ -45,7 +46,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Assign
             Assert.True(result.IsSuccess);
             Assert.Equal(TicketStatus.Assigned, ticket.Status);
             Assert.Equal(10, ticket.AssignedToUserId);
-            _ticketRepository.Verify(r => r.SaveChangesAsync(), Times.Once);
+            _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -126,7 +127,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Assign
 
             Assert.True(result.IsFailure);
             Assert.Equal(TicketErrors.InvalidAssignee, result.Error);
-            _ticketRepository.Verify(r => r.SaveChangesAsync(), Times.Never);
+            _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]
@@ -145,7 +146,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Assign
 
             Assert.True(result.IsFailure);
             Assert.Equal(TicketErrors.InvalidAssignee, result.Error);
-            _ticketRepository.Verify(r => r.SaveChangesAsync(), Times.Never);
+            _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
     }
 }

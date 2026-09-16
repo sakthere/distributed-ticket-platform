@@ -8,6 +8,5 @@ namespace TicketManagement.Application.Interfaces
         Task AddAsync(Ticket ticket);
         Task<Ticket?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
         Task<(IReadOnlyList<Ticket> Items, int TotalCount)> GetPagedAsync(TicketListFilter filter, CancellationToken cancellationToken = default);
-        Task SaveChangesAsync();
     }
 }

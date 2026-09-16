@@ -1,4 +1,5 @@
-﻿using Moq;
+﻿using System.Threading;
+using Moq;
 using TicketManagement.Application.Features.Tickets.Create;
 using TicketManagement.Application.Interfaces;
 using TicketManagement.Domain.Entities;
@@ -9,10 +10,11 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Create
     public class CreateTicketCommandHandlerTests
     {
         private readonly Mock<ITicketRepository> _ticketRepository = new();
+        private readonly Mock<IUnitOfWork> _unitOfWork = new();
         private readonly CreateTicketCommandHandler _handler;
         public CreateTicketCommandHandlerTests()
         {
-            _handler = new CreateTicketCommandHandler(_ticketRepository.Object);
+            _handler = new CreateTicketCommandHandler(_ticketRepository.Object, _unitOfWork.Object);
         }
 
         [Fact]
@@ -37,7 +39,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Create
 
             _ticketRepository.Verify(r => r.AddAsync(It.Is<Ticket>(t => t.Title == command.Title && t.CreatedByUserId == command.CreatedByUserId && t.Status == TicketStatus.Open)), Times.Once);
 
-            _ticketRepository.Verify(r => r.SaveChangesAsync(), Times.Once);
+            _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Theory]

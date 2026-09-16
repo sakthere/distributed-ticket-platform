@@ -12,14 +12,14 @@ namespace TicketManagement.Application.Features.Authentication.Register
         private readonly IUserRepository _userRepository;
         private readonly IPasswordHasher _passwordHasher;
         private readonly IAuthSessionIssuer _authSessionIssuer;
-        private readonly IRefreshTokenRepository _refreshTokenRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public RegisterCommandHandler(IUserRepository userRepository, IPasswordHasher passwordHasher, IAuthSessionIssuer authSessionIssuer, IRefreshTokenRepository refreshTokenRepository)
+        public RegisterCommandHandler(IUserRepository userRepository, IPasswordHasher passwordHasher, IAuthSessionIssuer authSessionIssuer, IUnitOfWork unitOfWork)
         {
             _userRepository = userRepository;
             _passwordHasher = passwordHasher;
             _authSessionIssuer = authSessionIssuer;
-            _refreshTokenRepository = refreshTokenRepository;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<Result<RegisterResult>> HandleAsync(RegisterCommand command)
@@ -41,10 +41,21 @@ namespace TicketManagement.Application.Features.Authentication.Register
             };
 
             await _userRepository.AddAsync(user);
-            await _userRepository.SaveChangesAsync();
+
+            // This still has to commit here, before IssueAsync runs: user.Id is an
+            // identity column, so it doesn't get a real value until EF Core actually
+            // executes the INSERT - and IssueAsync needs that real Id both for the JWT's
+            // claim and as the RefreshToken's UserId foreign key. Unit of Work makes the
+            // commit point explicit and consistent (one interface, not "whichever
+            // repository happens to be handy"), but it can't remove a genuine
+            // read-your-own-write dependency within a single request. Previously this
+            // exact two-commit shape existed too, just spread across two different
+            // repositories' SaveChangesAsync() instead of one IUnitOfWork - so nothing
+            // about atomicity changed here, only that both calls are now consistent.
+            await _unitOfWork.SaveChangesAsync();
 
             var session = await _authSessionIssuer.IssueAsync(user);
-            await _refreshTokenRepository.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
 
             return Result<RegisterResult>.Success(new RegisterResult
             {

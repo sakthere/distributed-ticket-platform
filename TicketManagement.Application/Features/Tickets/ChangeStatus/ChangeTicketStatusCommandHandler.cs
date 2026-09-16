@@ -8,9 +8,11 @@ namespace TicketManagement.Application.Features.Tickets.ChangeStatus
     public class ChangeTicketStatusCommandHandler
     {
         private readonly ITicketRepository _ticketRepository;
-        public ChangeTicketStatusCommandHandler(ITicketRepository ticketRepository)
+        private readonly IUnitOfWork _unitOfWork;
+        public ChangeTicketStatusCommandHandler(ITicketRepository ticketRepository, IUnitOfWork unitOfWork)
         {
             _ticketRepository = ticketRepository;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<Result<ChangeTicketStatusResult>> HandleAsync(ChangeTicketStatusCommand command)
@@ -40,7 +42,7 @@ namespace TicketManagement.Application.Features.Tickets.ChangeStatus
             }
 
             ticket.ChangeStatus(command.NewStatus);
-            await _ticketRepository.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
 
             return Result<ChangeTicketStatusResult>.Success(new ChangeTicketStatusResult
             {
