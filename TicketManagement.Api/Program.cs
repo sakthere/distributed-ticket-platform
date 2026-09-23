@@ -2,6 +2,8 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
+using Serilog.Events;
 using TicketManagement.Application.Features.Authentication.Login;
 using TicketManagement.Application.Features.Authentication.Register;
 using TicketManagement.Application.Interfaces;
@@ -30,7 +32,26 @@ using TicketManagement.Application.Features.Tickets.List;
 using TicketManagement.Application.Features.Tickets.OverridePriority;
 using TicketManagement.Application.Features.Tickets.Update;
 
+// Two-stage Serilog initialization (the pattern Serilog.AspNetCore itself
+// recommends). This "bootstrap" logger is deliberately minimal - it only
+// needs to survive long enough to report a startup failure (bad config,
+// DB connection string missing, DI misconfiguration) to the console before
+// the host and its configuration/DI system even exist. It gets replaced
+// wholesale by the fully configured logger a few lines down, once
+// builder.Configuration is available to read the real "Serilog" settings from.
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, services, loggerConfiguration) =>
+{
+    loggerConfiguration
+        .ReadFrom.Configuration(context.Configuration)
+        .Enrich.FromLogContext()
+        .Enrich.WithProperty("Application", "TicketManagement.Api");
+});
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -142,7 +163,38 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Ordering matters here:
+//  1. CorrelationIdMiddleware first - every log line written by anything
+//     after this point, including the exception log below, needs the
+//     correlation id already pushed into Serilog's LogContext.
+//  2. ExceptionHandlingMiddleware next, wrapping everything downstream -
+//     it converts an unhandled exception into a ProblemDetails response
+//     and logs it itself, WITHOUT rethrowing.
+//  3. UseSerilogRequestLogging last of the three - by running after
+//     exception handling, it always sees a completed response (200, 404,
+//     500, whatever) and logs exactly one summary line per request. If this
+//     were placed before ExceptionHandlingMiddleware instead, its own
+//     built-in catch-log-rethrow behavior would log the same exception a
+//     second time, once as its summary line and again inside
+//     ExceptionHandlingMiddleware - duplicate, noisier logs for zero benefit.
+app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseSerilogRequestLogging(options =>
+{
+    // A load balancer or orchestrator polls /health/* every few seconds.
+    // Logging every one of those at Information would drown out the
+    // requests that actually matter. Demote successful health polls to
+    // Verbose (effectively silent at the Information level configured in
+    // appsettings) while keeping genuine failures - anywhere, including
+    // health checks - visible at Error.
+    options.GetLevel = (httpContext, elapsed, ex) =>
+        ex != null
+            ? LogEventLevel.Error
+            : httpContext.Request.Path.StartsWithSegments("/health")
+                ? LogEventLevel.Verbose
+                : LogEventLevel.Information;
+});
+
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -160,4 +212,19 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
     ResponseWriter = HealthCheckResponseWriter.WriteResponse
 });
 
-app.Run();
+try
+{
+    Log.Information("Starting TicketManagement.Api");
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Host terminated unexpectedly");
+}
+finally
+{
+    // Serilog sinks (especially the file sink) buffer writes - flush
+    // on the way out so the last few log lines aren't silently lost on
+    // shutdown, whether that shutdown is graceful or a startup crash.
+    Log.CloseAndFlush();
+}

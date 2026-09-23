@@ -1,4 +1,5 @@
-﻿using Moq;
+﻿using Microsoft.Extensions.Logging;
+using Moq;
 using TicketManagement.Application.Features.Authentication;
 using TicketManagement.Application.Features.Authentication.Common;
 using TicketManagement.Application.Features.Authentication.Login;
@@ -13,10 +14,11 @@ namespace TicketManagement.Application.Tests.Features.Authentication.Register
         private readonly Mock<IAuthSessionIssuer> _authSessionIssuer = new();
         private readonly Mock<IUserRepository> _userRepository = new();
         private readonly Mock<IUnitOfWork> _unitOfWork = new();
+        private readonly Mock<ILogger<LoginCommandHandler>> _logger = new();
         private readonly LoginCommandHandler _handler;
         public LoginCommandHandlerTests()
         {
-            _handler = new LoginCommandHandler(_authSessionIssuer.Object, _unitOfWork.Object, _userRepository.Object, _passwordHasher.Object);
+            _handler = new LoginCommandHandler(_authSessionIssuer.Object, _unitOfWork.Object, _userRepository.Object, _passwordHasher.Object, _logger.Object);
         }
 
         [Fact]
@@ -58,6 +60,7 @@ namespace TicketManagement.Application.Tests.Features.Authentication.Register
             Assert.Equal(AuthErrors.InvalidCredentails, result.Error);
 
             _authSessionIssuer.Verify(s => s.IssueAsync(It.IsAny<User>(), It.IsAny<Guid>()), Times.Never());
+            VerifyLoggedWarningOnce();
         }
 
         [Fact]
@@ -75,6 +78,27 @@ namespace TicketManagement.Application.Tests.Features.Authentication.Register
             Assert.Equal(AuthErrors.InvalidCredentails, result.Error);
 
             _authSessionIssuer.Verify(s => s.IssueAsync(It.IsAny<User>(), It.IsAny<Guid>()), Times.Never());
+            VerifyLoggedWarningOnce();
+        }
+
+        // ILogger<T>.LogWarning(...) is an extension method, not a real member
+        // of the ILogger interface - Moq can only intercept actual interface
+        // members, so `_logger.Verify(l => l.LogWarning(...))` won't compile.
+        // The real member every LogX extension eventually calls is
+        // Log<TState>(LogLevel, EventId, TState, Exception?, Func<...>), so
+        // that's what has to be verified instead. This exact shape shows up
+        // any time a test needs to assert "something got logged" rather than
+        // just "the right Result came back."
+        private void VerifyLoggedWarningOnce()
+        {
+            _logger.Verify(
+                l => l.Log(
+                    LogLevel.Warning,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((state, t) => true),
+                    It.IsAny<Exception>(),
+                    It.Is<Func<It.IsAnyType, Exception?, string>>((formatter, t) => true)),
+                Times.Once);
         }
 
     } }
