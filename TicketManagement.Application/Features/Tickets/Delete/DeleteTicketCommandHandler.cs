@@ -7,9 +7,11 @@ namespace TicketManagement.Application.Features.Tickets.Delete
     public class DeleteTicketCommandHandler
     {
         private readonly ITicketRepository _ticketRepository;
-        public DeleteTicketCommandHandler(ITicketRepository ticketRepository)
+        private readonly IUnitOfWork _unitOfWork;
+        public DeleteTicketCommandHandler(ITicketRepository ticketRepository, IUnitOfWork unitOfWork)
         {
             _ticketRepository = ticketRepository;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<Result> HandleAsync(DeleteTicketCommand command)
@@ -28,7 +30,7 @@ namespace TicketManagement.Application.Features.Tickets.Delete
             if (!isAdmin && ticket.Status != TicketStatus.Open) return Result.Failure(TicketErrors.TicketNotDeletable);
 
             ticket.Delete();
-            await _ticketRepository.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
 
             return Result.Success();
         }

@@ -7,9 +7,11 @@ namespace TicketManagement.Application.Features.Tickets.Update
     public class UpdateTicketCommandHandler
     {
         private readonly ITicketRepository _ticketRepository;
-        public UpdateTicketCommandHandler(ITicketRepository ticketRepository)
+        private readonly IUnitOfWork _unitOfWork;
+        public UpdateTicketCommandHandler(ITicketRepository ticketRepository, IUnitOfWork unitOfWork)
         {
             _ticketRepository = ticketRepository;
+            _unitOfWork = unitOfWork;
         }
         
         public async Task<Result<UpdateTicketResult>> HandleAsync(UpdateTicketCommand command)
@@ -30,7 +32,7 @@ namespace TicketManagement.Application.Features.Tickets.Update
             }
 
             ticket.UpdateDetails(command.Title, command.Description);
-            await _ticketRepository.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
 
             return Result<UpdateTicketResult>.Success(new UpdateTicketResult
             {

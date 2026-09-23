@@ -17,6 +17,7 @@ namespace TicketManagement.Application.Tests.Features.Authentication.RefreshToke
         private readonly Mock<IRefreshTokenHasher> _refreshTokenHasher = new();
         private readonly Mock<IAuthSessionIssuer> _authSessionIssuer = new();
         private readonly Mock<IUserRepository> _userRepository = new();
+        private readonly Mock<IUnitOfWork> _unitOfWork = new();
         private readonly RefreshCommandHandler _handler;
 
         public RefreshCommandHandlerTests()
@@ -25,7 +26,8 @@ namespace TicketManagement.Application.Tests.Features.Authentication.RefreshToke
                 _refreshTokenRepository.Object,
                 _refreshTokenHasher.Object,
                 _authSessionIssuer.Object,
-                _userRepository.Object);
+                _userRepository.Object,
+                _unitOfWork.Object);
         }
 
         [Fact]

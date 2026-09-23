@@ -15,13 +15,15 @@ namespace TicketManagement.Application.Features.Authentication.RefreshToken
         private readonly IRefreshTokenHasher _refreshTokenHasher;
         private readonly IAuthSessionIssuer _authSessionIssuer;
         private readonly IUserRepository _userRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public RefreshCommandHandler(IRefreshTokenRepository refreshTokenRepository, IRefreshTokenHasher refreshTokenHasher, IAuthSessionIssuer authSessionIssuer, IUserRepository userRepository)
+        public RefreshCommandHandler(IRefreshTokenRepository refreshTokenRepository, IRefreshTokenHasher refreshTokenHasher, IAuthSessionIssuer authSessionIssuer, IUserRepository userRepository, IUnitOfWork unitOfWork)
         {
             _refreshTokenRepository = refreshTokenRepository;
             _refreshTokenHasher = refreshTokenHasher;
             _authSessionIssuer = authSessionIssuer;
             _userRepository = userRepository;
+            _unitOfWork = unitOfWork;
         }
         public async Task<Result<RefreshResult>> HandleAsync(RefreshCommand command)
         {
@@ -57,7 +59,7 @@ namespace TicketManagement.Application.Features.Authentication.RefreshToken
             existingToken.RevokedAt = DateTime.UtcNow;
 
             var session = await _authSessionIssuer.IssueAsync(user, existingToken.SessionId);
-            await _refreshTokenRepository.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
 
             return Result<RefreshResult>.Success(
                 new RefreshResult

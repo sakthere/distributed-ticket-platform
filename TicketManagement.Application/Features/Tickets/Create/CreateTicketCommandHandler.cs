@@ -8,9 +8,11 @@ namespace TicketManagement.Application.Features.Tickets.Create
     public class CreateTicketCommandHandler
     {
         private readonly ITicketRepository _ticketRepository;
-        public CreateTicketCommandHandler(ITicketRepository ticketRepository)
+        private readonly IUnitOfWork _unitOfWork;
+        public CreateTicketCommandHandler(ITicketRepository ticketRepository, IUnitOfWork unitOfWork)
         {
             _ticketRepository = ticketRepository;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<Result<CreateTicketResult>> HandleAsync(CreateTicketCommand command)
@@ -27,7 +29,7 @@ namespace TicketManagement.Application.Features.Tickets.Create
             ticket.RecalculatePriority();
 
             await _ticketRepository.AddAsync(ticket);
-            await _ticketRepository.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
 
             return Result<CreateTicketResult>.Success(new CreateTicketResult
             {

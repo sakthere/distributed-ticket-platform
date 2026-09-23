@@ -1,5 +1,6 @@
 using Moq;
 using System;
+using System.Threading;
 using TicketManagement.Application.Common;
 using TicketManagement.Application.Features.Authentication.Logout;
 using TicketManagement.Application.Interfaces;
@@ -13,11 +14,12 @@ namespace TicketManagement.Application.Tests.Features.Authentication.Logout
     {
         private readonly Mock<IRefreshTokenRepository> _refreshTokenRepository = new();
         private readonly Mock<IRefreshTokenHasher> _refreshTokenHasher = new();
+        private readonly Mock<IUnitOfWork> _unitOfWork = new();
         private readonly LogoutCommandHandler _handler;
 
         public LogoutCommandHandlerTests()
         {
-            _handler = new LogoutCommandHandler(_refreshTokenRepository.Object, _refreshTokenHasher.Object);
+            _handler = new LogoutCommandHandler(_refreshTokenRepository.Object, _refreshTokenHasher.Object, _unitOfWork.Object);
         }
 
         [Fact]
@@ -43,7 +45,7 @@ namespace TicketManagement.Application.Tests.Features.Authentication.Logout
             var result = await _handler.HandleAsync(command);
 
             Assert.True(result.IsSuccess);
-            _refreshTokenRepository.Verify(r => r.SaveChangesAsync(), Times.Never);
+            _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]
@@ -67,7 +69,7 @@ namespace TicketManagement.Application.Tests.Features.Authentication.Logout
             var result = await _handler.HandleAsync(command);
 
             Assert.True(result.IsSuccess);
-            _refreshTokenRepository.Verify(r => r.SaveChangesAsync(), Times.Never);
+            _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]
@@ -92,7 +94,7 @@ namespace TicketManagement.Application.Tests.Features.Authentication.Logout
             Assert.True(result.IsSuccess);
             Assert.True(activeToken.IsRevoked);
             Assert.NotNull(activeToken.RevokedAt);
-            _refreshTokenRepository.Verify(r => r.SaveChangesAsync(), Times.Once);
+            _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

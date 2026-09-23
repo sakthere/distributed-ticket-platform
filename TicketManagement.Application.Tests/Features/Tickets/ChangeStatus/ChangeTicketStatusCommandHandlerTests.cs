@@ -12,11 +12,12 @@ namespace TicketManagement.Application.Tests.Features.Tickets.ChangeStatus
     public class ChangeTicketStatusCommandHandlerTests
     {
         private readonly Mock<ITicketRepository> _ticketRepository = new();
+        private readonly Mock<IUnitOfWork> _unitOfWork = new();
         private readonly ChangeTicketStatusCommandHandler _handler;
 
         public ChangeTicketStatusCommandHandlerTests()
         {
-            _handler = new ChangeTicketStatusCommandHandler(_ticketRepository.Object);
+            _handler = new ChangeTicketStatusCommandHandler(_ticketRepository.Object, _unitOfWork.Object);
         }
 
         [Fact]
@@ -31,7 +32,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.ChangeStatus
 
             Assert.True(result.IsSuccess);
             Assert.Equal(TicketStatus.InProgress, ticket.Status);
-            _ticketRepository.Verify(r => r.SaveChangesAsync(), Times.Once);
+            _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -87,7 +88,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.ChangeStatus
 
             Assert.True(result.IsFailure);
             Assert.Equal(TicketErrors.NotAssignedAgent, result.Error);
-            _ticketRepository.Verify(r => r.SaveChangesAsync(), Times.Never);
+            _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Theory]
@@ -107,7 +108,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.ChangeStatus
 
             Assert.True(result.IsFailure);
             Assert.Equal(TicketErrors.InvalidStatusTransition, result.Error);
-            _ticketRepository.Verify(r => r.SaveChangesAsync(), Times.Never);
+            _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
     }
 }

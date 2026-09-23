@@ -25,19 +25,23 @@
 - [x] Assign Ticket
 - [x] Get Ticket (not originally scoped in this roadmap, added when the ticket CRUD loop was closed out)
 - [x] Ticket Status (explicit state-machine transitions - see TicketStatusPolicy)
-- [ ] Ticket Priority (override by Admin/Agent after creation - still open, see Sprint 5 Future Improvements)
-- [ ] List/Search Tickets (pagination, filtering, sorting — needed once Get's single-read model isn't enough)
+- [x] Ticket Priority (override by Admin/Agent after creation)
+- [x] List/Search Tickets (pagination, filtering, sorting)
+
+**Phase 2 is complete.**
 
 ---
 
 ## Phase 3 - Engineering Improvements
 
-- [ ] Global Exception Middleware
-- [ ] Result Pattern
-- [ ] Unit of Work
-- [ ] Logging
-- [ ] Health Checks
-- [ ] API Versioning
+- [x] Global Exception Middleware (implemented alongside Phase 1 error handling - see project error-handling notes)
+- [x] Result Pattern (`Result`/`Result<T>` for business failures - implemented alongside Phase 1)
+- [x] Unit of Work (single `IUnitOfWork.SaveChangesAsync`, replacing per-repository `SaveChangesAsync` - see Sprint 9)
+- [x] Logging (Serilog, correlation ids, structured request logging - see Sprint 10)
+- [x] Health Checks (`/health/live`, `/health/ready` - see Sprint 9)
+- [x] API Versioning (URL segment - `api/v1/...` - see Sprint 11)
+
+**Phase 3 is complete.**
 
 ---
 

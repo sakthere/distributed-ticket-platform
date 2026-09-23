@@ -12,11 +12,12 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Update
     public class UpdateTicketCommandHandlerTests
     {
         private readonly Mock<ITicketRepository> _ticketRepository = new();
+        private readonly Mock<IUnitOfWork> _unitOfWork = new();
         private readonly UpdateTicketCommandHandler _handler;
 
         public UpdateTicketCommandHandlerTests()
         {
-            _handler = new UpdateTicketCommandHandler(_ticketRepository.Object);
+            _handler = new UpdateTicketCommandHandler(_ticketRepository.Object, _unitOfWork.Object);
         }
 
         [Fact]
@@ -45,7 +46,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Update
 
             Assert.True(result.IsSuccess);
             Assert.Equal("New title", result.Value.Title);
-            _ticketRepository.Verify(r => r.SaveChangesAsync(), Times.Once);
+            _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -59,7 +60,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Update
 
             Assert.True(result.IsFailure);
             Assert.Equal(TicketErrors.NotFound, result.Error);
-            _ticketRepository.Verify(r => r.SaveChangesAsync(), Times.Never);
+            _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]
@@ -74,7 +75,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Update
 
             Assert.True(result.IsFailure);
             Assert.Equal(TicketErrors.NotTicketOwner, result.Error);
-            _ticketRepository.Verify(r => r.SaveChangesAsync(), Times.Never);
+            _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]
@@ -89,7 +90,7 @@ namespace TicketManagement.Application.Tests.Features.Tickets.Update
 
             Assert.True(result.IsFailure);
             Assert.Equal(TicketErrors.TicketNotEditable, result.Error);
-            _ticketRepository.Verify(r => r.SaveChangesAsync(), Times.Never);
+            _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
     }
 }
