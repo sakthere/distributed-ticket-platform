@@ -1,9 +1,12 @@
 
+using Asp.Versioning;
+using Asp.Versioning.ApiExplorer;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Events;
+using TicketManagement.Api.Swagger;
 using TicketManagement.Application.Features.Authentication.Login;
 using TicketManagement.Application.Features.Authentication.Register;
 using TicketManagement.Application.Interfaces;
@@ -89,6 +92,31 @@ builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterCommandValidator>();
 
+// URL-segment versioning (api/v1/tickets, not a header or query string): of
+// the three common schemes, this is the one that stays visible and testable
+// with nothing more than a browser address bar or a bare curl command - no
+// custom header to remember, and no collision with the query-string
+// parameters List/Search Tickets already uses for paging/filtering/sorting.
+// AssumeDefaultVersionWhenUnspecified + DefaultApiVersion(1.0) means existing
+// callers hitting an unversioned path during any transition period still
+// resolve to v1 instead of failing outright - a deliberate soft landing, not
+// a permanent guarantee.
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true; // adds api-supported-versions / api-deprecated-versions response headers, for free
+    options.ApiVersionReader = new UrlSegmentApiVersionReader();
+})
+.AddMvc()
+.AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";       // "1.0" -> "v1" in Swagger's grouping
+    options.SubstituteApiVersionInUrl = true;  // resolves {version:apiVersion} in Swagger-displayed routes
+});
+
+builder.Services.ConfigureOptions<ConfigureSwaggerOptions>();
+
 
 
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(
@@ -160,7 +188,14 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        var versionDescriptionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+        foreach (var description in versionDescriptionProvider.ApiVersionDescriptions)
+        {
+            options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", description.GroupName.ToUpperInvariant());
+        }
+    });
 }
 
 // Ordering matters here:

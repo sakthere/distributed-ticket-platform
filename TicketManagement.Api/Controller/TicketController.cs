@@ -1,4 +1,5 @@
 ﻿using System.Threading;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TicketManagement.Api.Contract.Tickets;
@@ -16,7 +17,8 @@ using TicketManagement.Domain.Enums;
 
 namespace TicketManagement.Api.Controller
 {
-    [Route("api/[controller]")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
     [Authorize]
     public class TicketController : ControllerBase
@@ -72,7 +74,10 @@ namespace TicketManagement.Api.Controller
                 Urgency = result.Value.Urgency,
                 CreatedAt = result.Value.CreatedAt
             };
-            return Created($"api/tickets/{response.Id}", response);
+            // See AuthController.Register for why this is a hardcoded literal
+            // rather than Url.Action/CreatedAtAction - pre-existing convention,
+            // just kept in sync with the new versioned route.
+            return Created($"api/v1/tickets/{response.Id}", response);
         }
 
         [HttpPatch("{id}")]

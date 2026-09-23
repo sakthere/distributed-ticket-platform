@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using Asp.Versioning;
 using Azure.Core;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -13,7 +14,8 @@ using static TicketManagement.Api.Contract.AuthResponse;
 
 namespace TicketManagement.Api.Controller
 {
-    [Route("api/[controller]")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
     {
@@ -38,7 +40,12 @@ namespace TicketManagement.Api.Controller
                 return result.Error.ToActionResult();
             }
             RefreshTokenCookieWriter.Write(Response, result.Value!.RefreshToken, result.Value.RefreshTokenExpiresAt);
-            return Created($"api/auth/{result.Value.UserId}", new RegisterResponse
+            // Hardcoded literal, matching this codebase's existing convention
+            // (see TicketController.Create) rather than Url.Action/CreatedAtAction -
+            // pre-existing tech debt, not introduced by versioning. It does mean
+            // this string has to be remembered and updated by hand every time the
+            // route changes, which is exactly what just happened here.
+            return Created($"api/v1/auth/{result.Value.UserId}", new RegisterResponse
             {
                 UserId = result.Value.UserId,
                 AccessToken = result.Value.AccessToken,

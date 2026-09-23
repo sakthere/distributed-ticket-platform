@@ -39,7 +39,9 @@
 - [x] Unit of Work (single `IUnitOfWork.SaveChangesAsync`, replacing per-repository `SaveChangesAsync` - see Sprint 9)
 - [x] Logging (Serilog, correlation ids, structured request logging - see Sprint 10)
 - [x] Health Checks (`/health/live`, `/health/ready` - see Sprint 9)
-- [ ] API Versioning
+- [x] API Versioning (URL segment - `api/v1/...` - see Sprint 11)
+
+**Phase 3 is complete.**
 
 ---
 
